@@ -1,2 +1,1 @@
-# my-first-project
-This is my first project in GitHub, web.weather
+# About my first project on GitHub
