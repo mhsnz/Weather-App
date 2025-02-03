@@ -8,6 +8,7 @@
   let error: any = null;
   let suggestions: string[] = [];
   const API_KEY = '0ab98e88df7c8d0da4dde8a63121d1f3';
+  let debounceTimeout: NodeJS.Timeout;
 
   async function getWeather(selectedCity = 'Tehran') {
     if (!selectedCity) return;
@@ -45,10 +46,13 @@
   }
 
   function fetchSuggestions(query: string) {
-    const cityList = ['Tehran', 'London', 'New York', 'Paris', 'Berlin', 'Tokyo', 'Sydney', 'Toronto', 'Madrid', 'Dubai', 'Beijing', 'Moscow', 'Delhi', 'Seoul', 'Bangkok', 'Istanbul', 'Rome'];
-    suggestions = cityList
-      .filter(city => city.toLowerCase().startsWith(query.toLowerCase()))
-      .slice(0, 5);
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(() => {
+      const cityList = ['Tehran', 'London', 'New York', 'Paris', 'Berlin', 'Tokyo', 'Sydney', 'Toronto', 'Madrid', 'Dubai', 'Beijing', 'Moscow', 'Delhi', 'Seoul', 'Bangkok', 'Istanbul', 'Rome'];
+      suggestions = cityList
+        .filter(city => city.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 5);
+    }, 300);
   }
 
   onMount(() => {
@@ -58,23 +62,26 @@
 
 <style>
   .search-bar {
-    transition: all 0.3s ease-in-out;
+    transition: all 0.2s ease-in-out;
   }
-  .search-bar:hover {
+  .search-bar:focus {
     transform: scale(1.05);
     background-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5);
   }
   .confirm-button {
-    transition: all 0.3s ease-in-out;
+    transition: all 0.2s ease-in-out;
   }
   .confirm-button:hover {
     transform: scale(1.1);
     background-color: #ff7f50;
+    box-shadow: 0px 0px 10px rgba(255, 127, 80, 0.7);
   }
   .suggestions-box {
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
     border-radius: 10px;
+    transition: opacity 0.2s ease-in-out;
   }
 </style>
 
