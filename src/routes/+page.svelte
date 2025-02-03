@@ -45,8 +45,10 @@
   }
 
   function fetchSuggestions(query: string) {
-    const cityList = ['Tehran', 'London', 'New York', 'Paris', 'Berlin', 'Tokyo', 'Sydney', 'Toronto'];
-    suggestions = cityList.filter(city => city.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
+    const cityList = ['Tehran', 'London', 'New York', 'Paris', 'Berlin', 'Tokyo', 'Sydney', 'Toronto', 'Madrid', 'Dubai', 'Beijing', 'Moscow', 'Delhi', 'Seoul', 'Bangkok', 'Istanbul', 'Rome'];
+    suggestions = cityList
+      .filter(city => city.toLowerCase().startsWith(query.toLowerCase()))
+      .slice(0, 5);
   }
 
   onMount(() => {
@@ -69,6 +71,11 @@
     transform: scale(1.1);
     background-color: #ff7f50;
   }
+  .suggestions-box {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+  }
 </style>
 
 <div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-700 p-4 relative">
@@ -89,10 +96,10 @@
     </button>
   </div>
   {#if suggestions.length}
-    <ul class="bg-white text-black rounded-lg shadow-md overflow-hidden w-full max-w-md mt-2 relative z-10">
+    <ul class="suggestions-box text-white rounded-lg shadow-md overflow-hidden w-full max-w-md mt-2 relative z-10">
       {#each suggestions as suggestion}
         <li 
-          class="px-4 py-2 hover:bg-gray-300 cursor-pointer"
+          class="px-4 py-2 hover:bg-white/30 cursor-pointer"
           on:click={() => { city = suggestion; suggestions = []; }}
         >
           {suggestion}
