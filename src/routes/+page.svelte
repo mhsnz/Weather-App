@@ -6,6 +6,7 @@
   let weatherInfo: any = null;
   let loading = false;
   let error: any = null;
+  let showWeather = false;
   let suggestions: string[] = [];
   const API_KEY = '0ab98e88df7c8d0da4dde8a63121d1f3';
   let debounceTimeout: NodeJS.Timeout;
@@ -15,6 +16,7 @@
     loading = true;
     error = null;
     weatherInfo = null;
+    showWeather = false;
     
     try {
       await new Promise(resolve => setTimeout(resolve, 3000));
@@ -40,6 +42,10 @@
         tempFahrenheit: tempFahrenheit.toFixed(1),
         description: data.weather[0].description
       };
+      
+      setTimeout(() => {
+        showWeather = true;
+      }, 500);
     } catch (err: any) {
       error = `Failed to fetch weather data: ${err.message}`;
     } finally {
@@ -63,18 +69,13 @@
 </script>
 
 <style>
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
   }
 
-  .loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid rgba(255, 255, 255, 0.3);
-    border-top: 5px solid white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+  .weather-box {
+    animation: fadeIn 0.5s ease-out;
   }
 </style>
 
@@ -116,8 +117,8 @@
     <div class="mt-6 text-red-400 relative z-10">
       <p>{error}</p>
     </div>
-  {:else if weatherInfo}
-    <div class="mt-6 p-4 rounded-xl transition-all text-center text-white bg-white/20 backdrop-blur-lg relative z-10">
+  {:else if showWeather}
+    <div class="mt-6 p-4 rounded-xl transition-all text-center text-white bg-white/20 backdrop-blur-lg relative z-10 weather-box">
       <div class="text-4xl mb-2">{weatherInfo.icon}</div>
       <h2 class="text-xl font-bold mb-2">{weatherInfo.name}</h2>
       <p class="mb-2">Temperature: {weatherInfo.tempCelsius}°C / {weatherInfo.tempFahrenheit}°F</p>
