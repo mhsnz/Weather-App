@@ -19,7 +19,7 @@
     showWeather = false;
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       const url = `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY}`;
       const response = await fetch(url);
       const data = await response.json();
@@ -78,6 +78,8 @@
     animation: fadeIn 0.5s ease-out;
   }
 </style>
+
+<link rel="icon" href="thunder-icon.png" type="image/png">
 
 <div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-700 p-4 relative">
   <div class="relative z-10 w-full max-w-md flex items-center space-x-2">
