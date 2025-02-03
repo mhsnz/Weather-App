@@ -54,46 +54,63 @@
   });
 </script>
 
-<div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-900 to-blue-700 p-4">
-  <div class="w-full max-w-md">
+<style>
+  .search-bar {
+    transition: all 0.3s ease-in-out;
+  }
+  .search-bar:hover {
+    transform: scale(1.05);
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+  .confirm-button {
+    transition: all 0.3s ease-in-out;
+  }
+  .confirm-button:hover {
+    transform: scale(1.1);
+    background-color: #ff7f50;
+  }
+</style>
+
+<div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-700 p-4 relative">
+  <div class="absolute inset-0 bg-[url('https://source.unsplash.com/random/1920x1080/?nature')] bg-cover bg-center opacity-30"></div>
+  <div class="relative z-10 w-full max-w-md flex items-center space-x-2">
     <input
       type="text"
       bind:value={city}
       on:input={() => fetchSuggestions(city)}
       placeholder="Search for a city..."
-      class="w-full px-4 py-3 rounded-full bg-white/20 text-white placeholder-white/70 outline-none mb-2"
+      class="w-full px-4 py-3 rounded-full bg-white/20 text-white placeholder-white/70 outline-none search-bar"
     />
-    {#if suggestions.length}
-      <ul class="bg-white text-black rounded-lg shadow-md overflow-hidden">
-        {#each suggestions as suggestion}
-          <li 
-            class="px-4 py-2 hover:bg-gray-300 cursor-pointer"
-            on:click={() => { city = suggestion; suggestions = []; }}
-          >
-            {suggestion}
-          </li>
-        {/each}
-      </ul>
-    {/if}
+    <button
+      on:click={() => getWeather(city)}
+      class="px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-600 transition-colors text-white font-medium confirm-button"
+    >
+      Confirm
+    </button>
   </div>
-  
-  <button
-    on:click={() => getWeather(city)}
-    class="mt-4 px-6 py-3 rounded-full bg-rose-500 hover:bg-rose-600 transition-colors text-white font-medium"
-  >
-    Confirm
-  </button>
+  {#if suggestions.length}
+    <ul class="bg-white text-black rounded-lg shadow-md overflow-hidden w-full max-w-md mt-2 relative z-10">
+      {#each suggestions as suggestion}
+        <li 
+          class="px-4 py-2 hover:bg-gray-300 cursor-pointer"
+          on:click={() => { city = suggestion; suggestions = []; }}
+        >
+          {suggestion}
+        </li>
+      {/each}
+    </ul>
+  {/if}
 
   {#if loading}
-    <div class="mt-6">
+    <div class="mt-6 text-white relative z-10">
       <p>Loading...</p>
     </div>
   {:else if error}
-    <div class="mt-6 text-rose-400">
+    <div class="mt-6 text-red-400 relative z-10">
       <p>{error}</p>
     </div>
   {:else if weatherInfo}
-    <div class="mt-6 p-4 rounded-xl transition-all text-center text-white">
+    <div class="mt-6 p-4 rounded-xl transition-all text-center text-white bg-white/20 backdrop-blur-lg relative z-10">
       <div class="text-4xl mb-2">{weatherInfo.icon}</div>
       <h2 class="text-xl font-bold mb-2">{weatherInfo.name}</h2>
       <p class="mb-2">Temperature: {weatherInfo.tempCelsius}°C / {weatherInfo.tempFahrenheit}°F</p>
