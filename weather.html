@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            animation: fadeIn 1s ease-in-out;
+        }
+        input[type="text"], button {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 1rem 0;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+        }
+        input[type="text"] {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        button {
+            background: #ff6f61;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #ff4a3d;
+        }
+        .weather-info {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: transparent;
+            border-radius: 15px;
+            transition: .5s;
+        }
+        .weather-info h2 {
+            font-size: 1.5rem;
+        }
+        .weather-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Weather App</h1>
+        <input type="text" id="country" placeholder="Enter a country name">
+        <button onclick="getWeather(document.getElementById('country').value)">Get Weather</button>
+        <div class="weather-info" id="weatherInfo"></div>
+    </div>
+
+    <script>
+        const apiKey = '0ab98e88df7c8d0da4dde8a63121d1f3';
+
+        async function getWeather(country) {
+            if (!country) return;
+            const weatherInfo = document.getElementById('weatherInfo');
+            weatherInfo.innerHTML = '<p>Loading...</p>';
+
+            try {
+                const url = `https://api.openweathermap.org/data/2.5/weather?q=${country}&units=metric&appid=${apiKey}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                const tempCelsius = data.main.temp;
+                const tempFahrenheit = tempCelsius * 9 / 5 + 32;
+                const description = data.weather[0].description.toLowerCase();
+
+                let weatherIcon = '❓';
+                if (description.includes('clear')) weatherIcon = '☀️';
+                else if (description.includes('cloud')) weatherIcon = '☁️';
+                else if (description.includes('rain')) weatherIcon = '🌧';
+                else if (description.includes('snow')) weatherIcon = '❄️';
+                else if (description.includes('storm')) weatherIcon = '⛈';
+
+                weatherInfo.innerHTML = `
+                    <div class="weather-icon">${weatherIcon}</div>
+                    <h2>${data.name}</h2>
+                    <p>Temperature: ${tempCelsius.toFixed(1)}°C / ${tempFahrenheit.toFixed(1)}°F</p>
+                    <p>Weather: ${data.weather[0].description}</p>
+                `;
+            } catch (error) {
+                weatherInfo.innerHTML = `<p style="color: #ff6f61;">Failed to fetch weather data: ${error.message}</p>`;
+            }
+        }
+
+        function loadDefaultWeather() {
+            getWeather("Tehran");
+        }
+
+        window.onload = loadDefaultWeather;
+    </script>
+</body>
+</html>
