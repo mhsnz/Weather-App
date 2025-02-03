@@ -17,6 +17,7 @@
     weatherInfo = null;
     
     try {
+      await new Promise(resolve => setTimeout(resolve, 3000));
       const url = `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY}`;
       const response = await fetch(url);
       const data = await response.json();
@@ -62,52 +63,33 @@
 </script>
 
 <style>
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 
-  .loading-animation {
-    animation: fadeIn 0.5s ease-in-out infinite alternate;
-  }
-
-  .search-bar {
-    transition: all 0.2s ease-in-out;
-  }
-  .search-bar:focus {
-    transform: scale(1.05);
-    background-color: rgba(255, 255, 255, 0.3);
-    box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.5);
-  }
-  .confirm-button {
-    transition: all 0.2s ease-in-out;
-  }
-  .confirm-button:hover {
-    transform: scale(1.1);
-    background-color: #ff7f50;
-    box-shadow: 0px 0px 10px rgba(255, 127, 80, 0.7);
-  }
-  .suggestions-box {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    border-radius: 10px;
-    transition: opacity 0.2s ease-in-out;
+  .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-top: 5px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
   }
 </style>
 
 <div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-700 p-4 relative">
-  <div class="absolute inset-0 bg-[url('https://source.unsplash.com/random/1920x1080/?nature')] bg-cover bg-center opacity-30"></div>
   <div class="relative z-10 w-full max-w-md flex items-center space-x-2">
     <input
       type="text"
       bind:value={city}
       on:input={() => fetchSuggestions(city)}
       placeholder="Search for a city..."
-      class="w-full px-4 py-3 rounded-full bg-white/20 text-white placeholder-white/70 outline-none search-bar"
+      class="w-full px-4 py-3 rounded-full bg-white/20 text-white placeholder-white/70 outline-none"
     />
     <button
       on:click={() => getWeather(city)}
-      class="px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-600 transition-colors text-white font-medium confirm-button"
+      class="px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-600 transition-colors text-white font-medium"
     >
       Confirm
     </button>
@@ -126,7 +108,8 @@
   {/if}
 
   {#if loading}
-    <div class="mt-6 text-white relative z-10 loading-animation">
+    <div class="mt-6 text-white relative z-10 flex flex-col items-center">
+      <div class="loading-spinner"></div>
       <p>Loading...</p>
     </div>
   {:else if error}
