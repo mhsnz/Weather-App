@@ -77,11 +77,16 @@
   .weather-box {
     animation: fadeIn 0.5s ease-out;
   }
+
+  body {
+    background: url('/background-lightning.jpg') no-repeat center center fixed;
+    background-size: cover;
+  }
 </style>
 
-<link rel="icon" href="thunder-icon.png" type="image/png">
+<link rel="icon" href="/thunder-icon.png" type="image/png">
 
-<div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-700 p-4 relative">
+<div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 p-4 relative">
   <div class="relative z-10 w-full max-w-md flex items-center space-x-2">
     <input
       type="text"
@@ -92,7 +97,7 @@
     />
     <button
       on:click={() => getWeather(city)}
-      class="px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-600 transition-colors text-white font-medium"
+      class="px-6 py-3 rounded-full bg-purple-500 hover:bg-purple-600 transition-colors text-white font-medium"
     >
       Confirm
     </button>
