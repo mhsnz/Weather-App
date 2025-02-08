@@ -35,7 +35,7 @@
       const forecastResponse = await fetch(forecastUrl);
       const forecastData = await forecastResponse.json();
 
-      forecastInfo.hourly = forecastData.list.slice(0, 24).map(item => ({
+      forecastInfo.hourly = forecastData.list.slice(0, 7).map(item => ({
         time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         temp: item.main.temp.toFixed(1),
         icon: getWeatherIcon(item.weather[0].description)
@@ -48,7 +48,6 @@
         dailyTemps[day].push(item.main.temp);
       });
 
-      let todayIndex = new Date().getDay();
       let daysSorted = [...Array(7).keys()].map(i => {
         return new Date(new Date().setDate(new Date().getDate() + i)).toLocaleDateString('en-US', { weekday: 'short' });
       });
@@ -93,51 +92,89 @@
     animation: fadeIn 0.5s ease-out;
   }
 
-  .forecast-container {
+  .container {
     display: flex;
-    gap: 12px;
+    align-items: center;
     justify-content: center;
-    overflow-x: auto;
-    white-space: nowrap;
+    gap: 16px;
+  }
+
+  .side-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.2);
     padding: 10px;
+    border-radius: 12px;
+    width: 100px;
   }
 
   .forecast-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 8px;
-    border-radius: 10px;
-    min-width: 60px;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 6px;
+    border-radius: 8px;
     text-align: center;
+    font-size: 14px;
   }
 
   /* ریسپانسیو */
   @media (max-width: 768px) {
-    .forecast-container {
-      flex-wrap: wrap;
+    .container {
+      flex-direction: column;
+    }
+
+    .side-box {
+      flex-direction: row;
       justify-content: space-between;
+      width: 100%;
     }
 
     .forecast-card {
-      min-width: 50px;
       font-size: 12px;
+      min-width: 45px;
     }
   }
 </style>
 
 <div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-700 p-4 relative">
-  <div class="relative z-10 w-full max-w-md flex items-center space-x-2">
-    <input
-      type="text"
-      bind:value={city}
-      placeholder="Search for a city..."
-      class="w-full px-4 py-3 rounded-full bg-white/20 text-white placeholder-white/70 outline-none"
-    />
-    <button on:click={() => getWeather(city)} class="px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-600 transition-colors text-white font-medium">
-      Confirm
-    </button>
+  <div class="container">
+    <!-- باکس ساعت‌ها -->
+    <div class="side-box">
+      {#each forecastInfo.hourly as hour}
+        <div class="forecast-card">
+          <div>{hour.icon}</div>
+          <div>{hour.time}</div>
+          <div>{hour.temp}°C</div>
+        </div>
+      {/each}
+    </div>
+
+    <!-- سرچ‌بار -->
+    <div class="relative z-10 w-full max-w-md flex items-center space-x-2">
+      <input
+        type="text"
+        bind:value={city}
+        placeholder="Search for a city..."
+        class="w-full px-4 py-3 rounded-full bg-white/20 text-white placeholder-white/70 outline-none"
+      />
+      <button on:click={() => getWeather(city)} class="px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-600 transition-colors text-white font-medium">
+        Confirm
+      </button>
+    </div>
+
+    <!-- باکس روزهای هفته -->
+    <div class="side-box">
+      {#each forecastInfo.daily as day}
+        <div class="forecast-card">
+          <div>{day.icon}</div>
+          <div>{day.day}</div>
+          <div>{day.temp.toFixed(1)}°C</div>
+        </div>
+      {/each}
+    </div>
   </div>
 
   {#if loading}
@@ -155,30 +192,6 @@
       <h2 class="text-xl font-bold mb-2">{weatherInfo.name}</h2>
       <p class="mb-2">Temperature: {weatherInfo.tempCelsius}°C</p>
       <p>Weather: {weatherInfo.description}</p>
-
-      <!-- نمایش پیش‌بینی ساعتی ۲۴ ساعته -->
-      <h3 class="mt-4 text-lg font-bold">Hourly Forecast</h3>
-      <div class="forecast-container">
-        {#each forecastInfo.hourly as hour}
-          <div class="forecast-card">
-            <div>{hour.icon}</div>
-            <div>{hour.time}</div>
-            <div>{hour.temp}°C</div>
-          </div>
-        {/each}
-      </div>
-
-      <!-- نمایش پیش‌بینی روزانه -->
-      <h3 class="mt-4 text-lg font-bold">Daily Forecast</h3>
-      <div class="forecast-container">
-        {#each forecastInfo.daily as day}
-          <div class="forecast-card">
-            <div>{day.icon}</div>
-            <div>{day.day}</div>
-            <div>{day.temp.toFixed(1)}°C</div>
-          </div>
-        {/each}
-      </div>
     </div>
   {/if}
 </div>
