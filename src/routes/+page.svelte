@@ -4,6 +4,7 @@
 
   let city = '';
   let weatherInfo: any = null;
+  let forecast: any = null;
   let loading = false;
   let error: any = null;
   let showWeather = false;
@@ -16,17 +17,20 @@
     loading = true;
     error = null;
     weatherInfo = null;
+    forecast = null;
     showWeather = false;
     
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY}`;
-      const response = await fetch(url);
-      const data = await response.json();
+      
+      // Fetch current weather
+      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY}`;
+      const weatherResponse = await fetch(weatherUrl);
+      const weatherData = await weatherResponse.json();
 
-      const tempCelsius = data.main.temp;
+      const tempCelsius = weatherData.main.temp;
       const tempFahrenheit = tempCelsius * 9 / 5 + 32;
-      const description = data.weather[0].description.toLowerCase();
+      const description = weatherData.weather[0].description.toLowerCase();
 
       let weatherIcon = '❓';
       if (description.includes('clear')) weatherIcon = '☀️';
@@ -37,11 +41,24 @@
 
       weatherInfo = {
         icon: weatherIcon,
-        name: data.name,
+        name: weatherData.name,
         tempCelsius: tempCelsius.toFixed(1),
         tempFahrenheit: tempFahrenheit.toFixed(1),
-        description: data.weather[0].description
+        description: weatherData.weather[0].description
       };
+
+      // Fetch weather forecast
+      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${selectedCity}&units=metric&appid=${API_KEY}`;
+      const forecastResponse = await fetch(forecastUrl);
+      const forecastData = await forecastResponse.json();
+      
+      forecast = forecastData.list.slice(0, 5).map(entry => ({
+        time: new Date(entry.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        tempCelsius: entry.main.temp.toFixed(1),
+        tempFahrenheit: (entry.main.temp * 9 / 5 + 32).toFixed(1),
+        description: entry.weather[0].description,
+        icon: entry.weather[0].icon
+      }));
       
       setTimeout(() => {
         showWeather = true;
@@ -53,78 +70,27 @@
     }
   }
 
-  function fetchSuggestions(query: string) {
-    clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(() => {
-      const cityList = ['Tehran', 'London', 'New York', 'Paris', 'Berlin', 'Tokyo', 'Sydney', 'Toronto', 'Madrid', 'Dubai', 'Beijing', 'Moscow', 'Delhi', 'Seoul', 'Bangkok', 'Istanbul', 'Rome'];
-      suggestions = cityList
-        .filter(city => city.toLowerCase().includes(query.toLowerCase()))
-        .slice(0, 5);
-    }, 300);
-  }
-
   onMount(() => {
     getWeather();
   });
 </script>
 
-<style>
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.8); }
-    to { opacity: 1; transform: scale(1); }
-  }
+<div class="mt-6 p-4 rounded-xl transition-all text-center text-white bg-white/20 backdrop-blur-lg relative z-10 weather-box">
+  <div class="text-4xl mb-2">{weatherInfo.icon}</div>
+  <h2 class="text-xl font-bold mb-2">{weatherInfo.name}</h2>
+  <p class="mb-2">Temperature: {weatherInfo.tempCelsius}°C / {weatherInfo.tempFahrenheit}°F</p>
+  <p>Weather: {weatherInfo.description}</p>
+</div>
 
-  .weather-box {
-    animation: fadeIn 0.5s ease-out;
-  }
-</style>
-
-<link rel="icon" href="thunder-icon.png" type="image/png">
-
-<div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-700 p-4 relative">
-  <div class="relative z-10 w-full max-w-md flex items-center space-x-2">
-    <input
-      type="text"
-      bind:value={city}
-      on:input={() => fetchSuggestions(city)}
-      placeholder="Search for a city..."
-      class="w-full px-4 py-3 rounded-full bg-white/20 text-white placeholder-white/70 outline-none"
-    />
-    <button
-      on:click={() => getWeather(city)}
-      class="px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-600 transition-colors text-white font-medium"
-    >
-      Confirm
-    </button>
-  </div>
-  {#if suggestions.length}
-    <ul class="suggestions-box text-white rounded-lg shadow-md overflow-hidden w-full max-w-md mt-2 relative z-10">
-      {#each suggestions as suggestion}
-        <li 
-          class="px-4 py-2 hover:bg-white/30 cursor-pointer"
-          on:click={() => { city = suggestion; suggestions = []; }}
-        >
-          {suggestion}
+{#if forecast}
+  <div class="mt-4 p-4 bg-white/20 rounded-lg text-white text-center">
+    <h3 class="text-lg font-bold mb-2">Upcoming Forecast</h3>
+    <ul>
+      {#each forecast as entry}
+        <li class="mb-2">
+          <span class="font-bold">{entry.time}:</span> {entry.tempCelsius}°C / {entry.tempFahrenheit}°F - {entry.description}
         </li>
       {/each}
     </ul>
-  {/if}
-
-  {#if loading}
-    <div class="mt-6 text-white relative z-10 flex flex-col items-center">
-      <div class="loading-spinner"></div>
-      <p>Loading...</p>
-    </div>
-  {:else if error}
-    <div class="mt-6 text-red-400 relative z-10">
-      <p>{error}</p>
-    </div>
-  {:else if showWeather}
-    <div class="mt-6 p-4 rounded-xl transition-all text-center text-white bg-white/20 backdrop-blur-lg relative z-10 weather-box">
-      <div class="text-4xl mb-2">{weatherInfo.icon}</div>
-      <h2 class="text-xl font-bold mb-2">{weatherInfo.name}</h2>
-      <p class="mb-2">Temperature: {weatherInfo.tempCelsius}°C / {weatherInfo.tempFahrenheit}°F</p>
-      <p>Weather: {weatherInfo.description}</p>
-    </div>
-  {/if}
-</div>
+  </div>
+{/if}
