@@ -4,6 +4,7 @@
 
   let city = '';
   let weatherInfo: any = null;
+  let forecastInfo: any = null;
   let loading = false;
   let error: any = null;
   let showWeather = false;
@@ -16,17 +17,20 @@
     loading = true;
     error = null;
     weatherInfo = null;
+    forecastInfo = null;
     showWeather = false;
     
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY}`;
-      const response = await fetch(url);
-      const data = await response.json();
 
-      const tempCelsius = data.main.temp;
+      // دریافت اطلاعات آب‌وهوا
+      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY}`;
+      const weatherResponse = await fetch(weatherUrl);
+      const weatherData = await weatherResponse.json();
+
+      const tempCelsius = weatherData.main.temp;
       const tempFahrenheit = tempCelsius * 9 / 5 + 32;
-      const description = data.weather[0].description.toLowerCase();
+      const description = weatherData.weather[0].description.toLowerCase();
 
       let weatherIcon = '❓';
       if (description.includes('clear')) weatherIcon = '☀️';
@@ -37,12 +41,41 @@
 
       weatherInfo = {
         icon: weatherIcon,
-        name: data.name,
+        name: weatherData.name,
         tempCelsius: tempCelsius.toFixed(1),
         tempFahrenheit: tempFahrenheit.toFixed(1),
-        description: data.weather[0].description
+        description: weatherData.weather[0].description
       };
-      
+
+      // دریافت پیش‌بینی ساعتی و روزانه
+      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${selectedCity}&units=metric&appid=${API_KEY}`;
+      const forecastResponse = await fetch(forecastUrl);
+      const forecastData = await forecastResponse.json();
+
+      forecastInfo = {
+        hourly: forecastData.list.slice(0, 6).map(item => ({
+          time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          temp: item.main.temp.toFixed(1),
+          icon: item.weather[0].icon
+        })),
+        daily: []
+      };
+
+      // تجزیه پیش‌بینی روزانه
+      let dailyTemps: any = {};
+      forecastData.list.forEach(item => {
+        let date = new Date(item.dt * 1000).toLocaleDateString();
+        if (!dailyTemps[date]) {
+          dailyTemps[date] = [];
+        }
+        dailyTemps[date].push(item.main.temp);
+      });
+
+      forecastInfo.daily = Object.entries(dailyTemps).slice(0, 5).map(([date, temps]) => ({
+        date,
+        temp: (temps as number[]).reduce((a, b) => a + b, 0) / (temps as number[]).length
+      }));
+
       setTimeout(() => {
         showWeather = true;
       }, 500);
@@ -125,6 +158,16 @@
       <h2 class="text-xl font-bold mb-2">{weatherInfo.name}</h2>
       <p class="mb-2">Temperature: {weatherInfo.tempCelsius}°C / {weatherInfo.tempFahrenheit}°F</p>
       <p>Weather: {weatherInfo.description}</p>
+
+      <h3 class="mt-4 text-lg font-bold">Hourly Forecast</h3>
+      {#each forecastInfo.hourly as hour}
+        <p>{hour.time}: {hour.temp}°C</p>
+      {/each}
+
+      <h3 class="mt-4 text-lg font-bold">Daily Forecast</h3>
+      {#each forecastInfo.daily as day}
+        <p>{day.date}: {day.temp.toFixed(1)}°C</p>
+      {/each}
     </div>
   {/if}
 </div>
