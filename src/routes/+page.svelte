@@ -47,7 +47,7 @@
         showWeather = true;
       }, 500);
     } catch (err: any) {
-      error = Failed to fetch weather data: ${err.message};
+      error = `Failed to fetch weather data: ${err.message}`;
     } finally {
       loading = false;
     }
