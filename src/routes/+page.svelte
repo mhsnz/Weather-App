@@ -81,7 +81,9 @@
 <style>
   body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    color: #333;
   }
 
   .container {
@@ -89,42 +91,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    min-height: 100vh;
     padding: 20px;
-    background: linear-gradient(to bottom, #4b0082, #000080);
-  }
-
-  .content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    width: 100%;
-    max-width: 900px;
-  }
-
-  .side-box {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 12px;
-    border-radius: 12px;
-    width: 150px;
-    height: 300px;
-    justify-content: center;
-    overflow-y: auto;
-  }
-
-  .forecast-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.3);
-    padding: 5px;
-    border-radius: 8px;
-    text-align: center;
-    font-size: 14px;
   }
 
   .search-box {
@@ -132,32 +100,98 @@
     justify-content: center;
     align-items: center;
     gap: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+  }
+
+  input {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 25px;
+    outline: none;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    background: #ff6f61;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+
+  button:hover {
+    background: #ff3b2f;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 800px;
   }
 
   .weather-box {
     text-align: center;
-    padding: 15px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.3);
+    padding: 20px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(10px);
-    color: white;
-    width: 220px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .weather-box h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .weather-box p {
+    margin: 5px 0;
+    font-size: 18px;
+  }
+
+  .forecast-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .forecast-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 150px;
+  }
+
+  .forecast-box p {
+    margin: 5px 0;
+    font-size: 14px;
   }
 
   @media (max-width: 768px) {
-    .content {
+    .forecast-container {
       flex-direction: column;
+      align-items: center;
     }
 
-    .side-box {
-      width: 100%;
-      max-width: 320px;
-      height: auto;
-    }
-
-    .forecast-card {
-      font-size: 12px;
+    .forecast-box {
+      max-width: 100%;
     }
   }
 </style>
@@ -169,43 +203,39 @@
       type="text"
       bind:value={city}
       placeholder="Search for a city..."
-      class="px-4 py-3 rounded-full bg-white/20 text-white placeholder-white/70 outline-none"
     />
-    <button on:click={() => getWeather(city)} class="px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-600 transition-colors text-white font-medium">
-      Confirm
-    </button>
+    <button on:click={() => getWeather(city)}>Search</button>
   </div>
 
   <!-- محتوا در وسط صفحه -->
   <div class="content">
-    <!-- باکس ساعت‌ها -->
-    <div class="side-box">
-      {#each forecastInfo.hourly as hour}
-        <div class="forecast-card">
-          <div>{hour.icon}</div>
-          <div>{hour.time}</div>
-          <div>{hour.temp}°C</div>
-        </div>
-      {/each}
-    </div>
-
     <!-- باکس نمایش دما -->
     {#if showWeather}
       <div class="weather-box">
         <div class="text-4xl mb-2">{weatherInfo.icon}</div>
-        <h2 class="text-xl font-bold mb-2">{weatherInfo.name}</h2>
-        <p class="mb-2">Temperature: {weatherInfo.tempCelsius}°C</p>
+        <h2>{weatherInfo.name}</h2>
+        <p>Temperature: {weatherInfo.tempCelsius}°C</p>
         <p>Weather: {weatherInfo.description}</p>
       </div>
     {/if}
 
-    <!-- باکس روزهای هفته -->
-    <div class="side-box">
+    <!-- باکس پیش‌بینی آب و هوا -->
+    <div class="forecast-container">
+      {#each forecastInfo.hourly as hour}
+        <div class="forecast-box">
+          <div>{hour.icon}</div>
+          <p>{hour.time}</p>
+          <p>{hour.temp}°C</p>
+        </div>
+      {/each}
+    </div>
+
+    <div class="forecast-container">
       {#each forecastInfo.daily as day}
-        <div class="forecast-card">
+        <div class="forecast-box">
           <div>{day.icon}</div>
-          <div>{day.day}</div>
-          <div>{day.temp.toFixed(1)}°C</div>
+          <p>{day.day}</p>
+          <p>{day.temp.toFixed(1)}°C</p>
         </div>
       {/each}
     </div>
