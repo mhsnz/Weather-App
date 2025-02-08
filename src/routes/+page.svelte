@@ -18,8 +18,6 @@
     showWeather = false;
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
       const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY}`;
       const weatherResponse = await fetch(weatherUrl);
       const weatherData = await weatherResponse.json();
@@ -58,9 +56,7 @@
         icon: getWeatherIcon(weatherData.weather[0].description)
       }));
 
-      setTimeout(() => {
-        showWeather = true;
-      }, 500);
+      showWeather = true;
     } catch (err: any) {
       error = `Failed to fetch weather data: ${err.message}`;
     } finally {
@@ -83,9 +79,9 @@
 </script>
 
 <style>
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.8); }
-    to { opacity: 1; transform: scale(1); }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
   }
 
   .container {
@@ -94,12 +90,17 @@
     align-items: center;
     justify-content: center;
     height: 100vh;
+    padding: 20px;
+    background: linear-gradient(to bottom, #4b0082, #000080);
   }
 
   .content {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 20px;
+    width: 100%;
+    max-width: 900px;
   }
 
   .side-box {
@@ -109,9 +110,10 @@
     background: rgba(255, 255, 255, 0.2);
     padding: 12px;
     border-radius: 12px;
-    width: 130px;
-    height: 280px;
+    width: 150px;
+    height: 300px;
     justify-content: center;
+    overflow-y: auto;
   }
 
   .forecast-card {
@@ -127,17 +129,17 @@
 
   .search-box {
     display: flex;
+    justify-content: center;
     align-items: center;
     gap: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
   }
 
   .weather-box {
-    animation: fadeIn 0.5s ease-out;
     text-align: center;
-    padding: 12px;
+    padding: 15px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(10px);
     color: white;
     width: 220px;
@@ -146,12 +148,12 @@
   @media (max-width: 768px) {
     .content {
       flex-direction: column;
-      gap: 12px;
     }
 
     .side-box {
-      width: 100px;
-      height: 260px;
+      width: 100%;
+      max-width: 320px;
+      height: auto;
     }
 
     .forecast-card {
@@ -160,7 +162,7 @@
   }
 </style>
 
-<div class="container bg-gradient-to-br from-purple-900 to-indigo-700 p-4">
+<div class="container">
   <!-- سرچ بار -->
   <div class="search-box">
     <input
