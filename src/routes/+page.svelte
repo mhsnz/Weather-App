@@ -3,11 +3,10 @@
 
   let city = '';
   let weatherInfo: any = null;
-  let forecastInfo: any = null;
+  let forecastInfo: any = { hourly: [], daily: [] };
   let loading = false;
   let error: any = null;
   let showWeather = false;
-  let suggestions: string[] = [];
   const API_KEY = '0ab98e88df7c8d0da4dde8a63121d1f3';
 
   async function getWeather(selectedCity = 'Tehran') {
@@ -15,7 +14,7 @@
     loading = true;
     error = null;
     weatherInfo = null;
-    forecastInfo = null;
+    forecastInfo = { hourly: [], daily: [] };
     showWeather = false;
 
     try {
@@ -42,17 +41,14 @@
       const forecastResponse = await fetch(forecastUrl);
       const forecastData = await forecastResponse.json();
 
-      forecastInfo = {
-        hourly: forecastData.list
-          .filter((_, index) => index % 2 === 0) // نمایش هر ۶ ساعت
-          .slice(0, 6)
-          .map(item => ({
-            time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            temp: item.main.temp.toFixed(1),
-            icon: getWeatherIcon(item.weather[0].description)
-          })),
-        daily: []
-      };
+      forecastInfo.hourly = forecastData.list
+        .filter((_, index) => index % 3 === 0) // نمایش هر ۳ ساعت یکبار
+        .slice(0, 6)
+        .map(item => ({
+          time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          temp: item.main.temp.toFixed(1),
+          icon: getWeatherIcon(item.weather[0].description)
+        }));
 
       let dailyTemps: any = {};
       forecastData.list.forEach(item => {
@@ -67,7 +63,8 @@
         .slice(0, 5)
         .map(([day, temps]) => ({
           day,
-          temp: (temps as number[]).reduce((a, b) => a + b, 0) / (temps as number[]).length
+          temp: (temps as number[]).reduce((a, b) => a + b, 0) / (temps as number[]).length,
+          icon: getWeatherIcon(description)
         }));
 
       setTimeout(() => {
@@ -171,7 +168,7 @@
       <div class="forecast-container">
         {#each forecastInfo.daily as day}
           <div class="forecast-card">
-            <div>{getWeatherIcon(day.temp)}</div>
+            <div>{day.icon}</div>
             <div>{day.day}</div>
             <div>{day.temp.toFixed(1)}°C</div>
           </div>
