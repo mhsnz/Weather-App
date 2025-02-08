@@ -42,8 +42,7 @@
       const forecastData = await forecastResponse.json();
 
       forecastInfo.hourly = forecastData.list
-        .filter((_, index) => index % 3 === 0) // نمایش هر ۳ ساعت یکبار
-        .slice(0, 6)
+        .slice(0, 24) // دریافت داده‌های ۲۴ ساعت آینده
         .map(item => ({
           time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           temp: item.main.temp.toFixed(1),
@@ -59,13 +58,14 @@
         dailyTemps[day].push(item.main.temp);
       });
 
-      forecastInfo.daily = Object.entries(dailyTemps)
-        .slice(0, 5)
-        .map(([day, temps]) => ({
-          day,
-          temp: (temps as number[]).reduce((a, b) => a + b, 0) / (temps as number[]).length,
-          icon: getWeatherIcon(description)
-        }));
+      const today = new Date().toLocaleDateString('en-US', { weekday: 'short' });
+      let daysSorted = Object.keys(dailyTemps).slice(0, Object.keys(dailyTemps).indexOf(today) + 1);
+
+      forecastInfo.daily = daysSorted.map(day => ({
+        day,
+        temp: (dailyTemps[day] as number[]).reduce((a, b) => a + b, 0) / (dailyTemps[day] as number[]).length,
+        icon: getWeatherIcon(description)
+      }));
 
       setTimeout(() => {
         showWeather = true;
@@ -151,7 +151,7 @@
       <p class="mb-2">Temperature: {weatherInfo.tempCelsius}°C / {weatherInfo.tempFahrenheit}°F</p>
       <p>Weather: {weatherInfo.description}</p>
 
-      <!-- نمایش پیش‌بینی ساعتی -->
+      <!-- نمایش پیش‌بینی ساعتی ۲۴ ساعته -->
       <h3 class="mt-4 text-lg font-bold">Hourly Forecast</h3>
       <div class="forecast-container">
         {#each forecastInfo.hourly as hour}
