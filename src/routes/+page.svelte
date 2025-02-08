@@ -96,27 +96,26 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 16px;
+    gap: 12px;
     width: 100%;
   }
 
   .forecast-container {
     display: flex;
     justify-content: center;
-    align-items: center;
-    gap: 16px;
+    align-items: flex-start;
+    gap: 10px;
     width: 100%;
   }
 
   .side-box {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     background: rgba(255, 255, 255, 0.2);
-    padding: 10px;
+    padding: 8px;
     border-radius: 12px;
-    width: 100px;
+    width: 85px;
   }
 
   .forecast-card {
@@ -124,41 +123,36 @@
     flex-direction: column;
     align-items: center;
     background: rgba(255, 255, 255, 0.3);
-    padding: 6px;
+    padding: 5px;
     border-radius: 8px;
     text-align: center;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .search-box {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
   }
 
-  /* ریسپانسیو */
   @media (max-width: 768px) {
     .forecast-container {
-      flex-direction: column;
-      gap: 10px;
+      gap: 5px;
     }
 
     .side-box {
-      flex-direction: row;
-      justify-content: space-between;
-      width: 100%;
+      width: 75px;
     }
 
     .forecast-card {
-      font-size: 12px;
-      min-width: 45px;
+      font-size: 11px;
     }
   }
 </style>
 
 <div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-700 p-4">
-  <!-- باکس نمایش ساعت و روزها در دو طرف -->
+  <!-- باکس نمایش ساعت و روزها نزدیک‌تر به سرچ‌بار -->
   <div class="forecast-container">
     <!-- باکس ساعت‌ها -->
     <div class="side-box">
