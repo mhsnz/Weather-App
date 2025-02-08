@@ -24,16 +24,10 @@
       const weatherResponse = await fetch(weatherUrl);
       const weatherData = await weatherResponse.json();
 
-      const tempCelsius = weatherData.main.temp;
-      const tempFahrenheit = tempCelsius * 9 / 5 + 32;
-      const description = weatherData.weather[0].description.toLowerCase();
-      const weatherIcon = getWeatherIcon(description);
-
       weatherInfo = {
-        icon: weatherIcon,
+        icon: getWeatherIcon(weatherData.weather[0].description),
         name: weatherData.name,
-        tempCelsius: tempCelsius.toFixed(1),
-        tempFahrenheit: tempFahrenheit.toFixed(1),
+        tempCelsius: weatherData.main.temp.toFixed(1),
         description: weatherData.weather[0].description
       };
 
@@ -41,30 +35,28 @@
       const forecastResponse = await fetch(forecastUrl);
       const forecastData = await forecastResponse.json();
 
-      forecastInfo.hourly = forecastData.list
-        .slice(0, 24) // دریافت داده‌های ۲۴ ساعت آینده
-        .map(item => ({
-          time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          temp: item.main.temp.toFixed(1),
-          icon: getWeatherIcon(item.weather[0].description)
-        }));
+      forecastInfo.hourly = forecastData.list.slice(0, 24).map(item => ({
+        time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        temp: item.main.temp.toFixed(1),
+        icon: getWeatherIcon(item.weather[0].description)
+      }));
 
       let dailyTemps: any = {};
       forecastData.list.forEach(item => {
         let day = new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
-        if (!dailyTemps[day]) {
-          dailyTemps[day] = [];
-        }
+        if (!dailyTemps[day]) dailyTemps[day] = [];
         dailyTemps[day].push(item.main.temp);
       });
 
-      const today = new Date().toLocaleDateString('en-US', { weekday: 'short' });
-      let daysSorted = Object.keys(dailyTemps).slice(0, Object.keys(dailyTemps).indexOf(today) + 1);
+      let todayIndex = new Date().getDay();
+      let daysSorted = [...Array(7).keys()].map(i => {
+        return new Date(new Date().setDate(new Date().getDate() + i)).toLocaleDateString('en-US', { weekday: 'short' });
+      });
 
       forecastInfo.daily = daysSorted.map(day => ({
         day,
-        temp: (dailyTemps[day] as number[]).reduce((a, b) => a + b, 0) / (dailyTemps[day] as number[]).length,
-        icon: getWeatherIcon(description)
+        temp: (dailyTemps[day] || [0]).reduce((a, b) => a + b, 0) / (dailyTemps[day] || [1]).length,
+        icon: getWeatherIcon(weatherData.weather[0].description)
       }));
 
       setTimeout(() => {
@@ -120,6 +112,19 @@
     min-width: 60px;
     text-align: center;
   }
+
+  /* ریسپانسیو */
+  @media (max-width: 768px) {
+    .forecast-container {
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .forecast-card {
+      min-width: 50px;
+      font-size: 12px;
+    }
+  }
 </style>
 
 <div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-700 p-4 relative">
@@ -148,7 +153,7 @@
     <div class="mt-6 p-4 rounded-xl text-center text-white bg-white/20 backdrop-blur-lg weather-box">
       <div class="text-4xl mb-2">{weatherInfo.icon}</div>
       <h2 class="text-xl font-bold mb-2">{weatherInfo.name}</h2>
-      <p class="mb-2">Temperature: {weatherInfo.tempCelsius}°C / {weatherInfo.tempFahrenheit}°F</p>
+      <p class="mb-2">Temperature: {weatherInfo.tempCelsius}°C</p>
       <p>Weather: {weatherInfo.description}</p>
 
       <!-- نمایش پیش‌بینی ساعتی ۲۴ ساعته -->
