@@ -92,11 +92,21 @@
     animation: fadeIn 0.5s ease-out;
   }
 
-  .container {
+  .main-container {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 16px;
+    width: 100%;
+  }
+
+  .forecast-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
   }
 
   .side-box {
@@ -120,10 +130,18 @@
     font-size: 14px;
   }
 
+  .search-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
   /* ریسپانسیو */
   @media (max-width: 768px) {
-    .container {
+    .forecast-container {
       flex-direction: column;
+      gap: 10px;
     }
 
     .side-box {
@@ -139,8 +157,9 @@
   }
 </style>
 
-<div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-700 p-4 relative">
-  <div class="container">
+<div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-700 p-4">
+  <!-- باکس نمایش ساعت و روزها در دو طرف -->
+  <div class="forecast-container">
     <!-- باکس ساعت‌ها -->
     <div class="side-box">
       {#each forecastInfo.hourly as hour}
@@ -152,17 +171,28 @@
       {/each}
     </div>
 
-    <!-- سرچ‌بار -->
-    <div class="relative z-10 w-full max-w-md flex items-center space-x-2">
-      <input
-        type="text"
-        bind:value={city}
-        placeholder="Search for a city..."
-        class="w-full px-4 py-3 rounded-full bg-white/20 text-white placeholder-white/70 outline-none"
-      />
-      <button on:click={() => getWeather(city)} class="px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-600 transition-colors text-white font-medium">
-        Confirm
-      </button>
+    <!-- وسط: سرچ‌بار و اطلاعات هواشناسی -->
+    <div class="main-container">
+      <div class="search-box">
+        <input
+          type="text"
+          bind:value={city}
+          placeholder="Search for a city..."
+          class="px-4 py-3 rounded-full bg-white/20 text-white placeholder-white/70 outline-none"
+        />
+        <button on:click={() => getWeather(city)} class="px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-600 transition-colors text-white font-medium">
+          Confirm
+        </button>
+      </div>
+
+      {#if showWeather}
+        <div class="p-4 rounded-xl text-center text-white bg-white/20 backdrop-blur-lg weather-box">
+          <div class="text-4xl mb-2">{weatherInfo.icon}</div>
+          <h2 class="text-xl font-bold mb-2">{weatherInfo.name}</h2>
+          <p class="mb-2">Temperature: {weatherInfo.tempCelsius}°C</p>
+          <p>Weather: {weatherInfo.description}</p>
+        </div>
+      {/if}
     </div>
 
     <!-- باکس روزهای هفته -->
@@ -176,22 +206,4 @@
       {/each}
     </div>
   </div>
-
-  {#if loading}
-    <div class="mt-6 text-white flex flex-col items-center">
-      <div class="loading-spinner"></div>
-      <p>Loading...</p>
-    </div>
-  {:else if error}
-    <div class="mt-6 text-red-400">
-      <p>{error}</p>
-    </div>
-  {:else if showWeather}
-    <div class="mt-6 p-4 rounded-xl text-center text-white bg-white/20 backdrop-blur-lg weather-box">
-      <div class="text-4xl mb-2">{weatherInfo.icon}</div>
-      <h2 class="text-xl font-bold mb-2">{weatherInfo.name}</h2>
-      <p class="mb-2">Temperature: {weatherInfo.tempCelsius}°C</p>
-      <p>Weather: {weatherInfo.description}</p>
-    </div>
-  {/if}
 </div>
