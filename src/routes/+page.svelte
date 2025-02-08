@@ -20,7 +20,7 @@
     
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      const url = https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY};
+      const url = https:api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY};
       const response = await fetch(url);
       const data = await response.json();
 
