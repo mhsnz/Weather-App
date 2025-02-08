@@ -33,7 +33,7 @@
       const forecastResponse = await fetch(forecastUrl);
       const forecastData = await forecastResponse.json();
 
-      forecastInfo.hourly = forecastData.list.slice(0, 7).map(item => ({
+      forecastInfo.hourly = forecastData.list.slice(0, 12).map(item => ({
         time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         temp: item.main.temp.toFixed(1),
         icon: getWeatherIcon(item.weather[0].description)
@@ -159,14 +159,57 @@
     font-size: 18px;
   }
 
-  .forecast-container {
+  .hourly-forecast {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 10px;
+    width: 100%;
+    max-width: 600px;
+    scrollbar-width: thin;
+    scrollbar-color: #ff6f61 #f5f7fa;
+  }
+
+  .hourly-forecast::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .hourly-forecast::-webkit-scrollbar-thumb {
+    background: #ff6f61;
+    border-radius: 4px;
+  }
+
+  .hourly-forecast::-webkit-scrollbar-track {
+    background: #f5f7fa;
+  }
+
+  .hourly-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+
+  .hourly-card p {
+    margin: 5px 0;
+    font-size: 14px;
+  }
+
+  .daily-forecast {
     display: flex;
     justify-content: space-between;
     gap: 10px;
     width: 100%;
+    max-width: 600px;
   }
 
-  .forecast-box {
+  .daily-card {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -176,22 +219,22 @@
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 150px;
   }
 
-  .forecast-box p {
+  .daily-card p {
     margin: 5px 0;
     font-size: 14px;
   }
 
   @media (max-width: 768px) {
-    .forecast-container {
+    .daily-forecast {
       flex-direction: column;
       align-items: center;
     }
 
-    .forecast-box {
-      max-width: 100%;
+    .daily-card {
+      width: 100%;
+      max-width: 300px;
     }
   }
 </style>
@@ -219,10 +262,10 @@
       </div>
     {/if}
 
-    <!-- باکس پیش‌بینی آب و هوا -->
-    <div class="forecast-container">
+    <!-- باکس پیش‌بینی ساعتی با قابلیت اسکرول -->
+    <div class="hourly-forecast">
       {#each forecastInfo.hourly as hour}
-        <div class="forecast-box">
+        <div class="hourly-card">
           <div>{hour.icon}</div>
           <p>{hour.time}</p>
           <p>{hour.temp}°C</p>
@@ -230,9 +273,10 @@
       {/each}
     </div>
 
-    <div class="forecast-container">
+    <!-- باکس پیش‌بینی روزانه -->
+    <div class="daily-forecast">
       {#each forecastInfo.daily as day}
-        <div class="forecast-box">
+        <div class="daily-card">
           <div>{day.icon}</div>
           <p>{day.day}</p>
           <p>{day.temp.toFixed(1)}°C</p>
