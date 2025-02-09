@@ -47,9 +47,14 @@
       }));
 
       let dailyTemps: any = {};
+      let dailyIcons: any = {}; // برای ذخیره آیکون‌های هر روز
+
       forecastData.list.forEach(item => {
         let day = new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
-        if (!dailyTemps[day]) dailyTemps[day] = [];
+        if (!dailyTemps[day]) {
+          dailyTemps[day] = [];
+          dailyIcons[day] = item.weather[0].description; // ذخیره وضعیت هوا برای هر روز
+        }
         dailyTemps[day].push(item.main.temp);
       });
 
@@ -60,7 +65,7 @@
       forecastInfo.daily = daysSorted.map(day => ({
         day,
         temp: (dailyTemps[day] || [0]).reduce((a, b) => a + b, 0) / (dailyTemps[day] || [1]).length,
-        icon: getWeatherIcon(weatherData.weather[0].description)
+        icon: getWeatherIcon(dailyIcons[day]) // استفاده از آیکون مربوط به هر روز
       }));
 
       showWeather = true;
@@ -72,6 +77,7 @@
   }
 
   function getWeatherIcon(description: string) {
+    if (!description) return '❓'; // اگر وضعیت هوا تعریف نشده باشد
     if (description.includes('clear')) return '☀️';
     if (description.includes('cloud')) return '☁️';
     if (description.includes('rain')) return '🌧';
