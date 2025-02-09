@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { fade, fly, slide } from 'svelte/transition'; // وارد کردن انیمیشن‌ها
+  import { fade, fly, slide } from 'svelte/transition';
 
   let city = '';
   let weatherInfo: any = null;
@@ -8,18 +8,18 @@
   let loading = false;
   let error: any = null;
   let showWeather = false;
-  let isNight = false; // حالت شب یا روز
-  let selectedDay: any = null; // روز انتخاب‌شده برای نمایش جزئیات
-  let showModal = false; // کنترل نمایش Modal
+  let isNight = false;
+  let selectedDay: any = null;
+  let showModal = false;
   const API_KEY = '0ab98e88df7c8d0da4dde8a63121d1f3';
 
-  // تابع برای بررسی زمان شب یا روز
+  // بررسی حالت شب یا روز
   function checkNightMode(sunrise: number, sunset: number) {
-    const now = Math.floor(Date.now() / 1000); // زمان فعلی به ثانیه
-    isNight = now < sunrise || now > sunset; // اگر قبل از طلوع یا بعد از غروب باشد، شب است
+    const now = Math.floor(Date.now() / 1000);
+    isNight = now < sunrise || now > sunset;
   }
 
-  // تابع برای باز کردن Modal و نمایش جزئیات روز انتخاب‌شده
+  // باز کردن Modal و نمایش جزئیات روز انتخاب‌شده
   function openModal(day: any) {
     selectedDay = forecastInfo.hourly.filter((hour: any) => {
       const hourDay = new Date(hour.time).toLocaleDateString('en-US', { weekday: 'short' });
@@ -28,12 +28,13 @@
     showModal = true;
   }
 
-  // تابع برای بستن Modal
+  // بستن Modal
   function closeModal() {
     showModal = false;
     selectedDay = null;
   }
 
+  // دریافت اطلاعات آب و هوا
   async function getWeather(selectedCity = 'Tehran') {
     if (!selectedCity) return;
     loading = true;
@@ -57,42 +58,40 @@
         description: weatherData.weather[0].description
       };
 
-      // بارگذاری پیش‌بینی آب و هوا به صورت Lazy
-      setTimeout(async () => {
-        const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${selectedCity}&units=metric&appid=${API_KEY}`;
-        const forecastResponse = await fetch(forecastUrl);
-        const forecastData = await forecastResponse.json();
+      // دریافت پیش‌بینی آب و هوا
+      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${selectedCity}&units=metric&appid=${API_KEY}`;
+      const forecastResponse = await fetch(forecastUrl);
+      const forecastData = await forecastResponse.json();
 
-        forecastInfo.hourly = forecastData.list.slice(0, 12).map((item: any) => ({
-          time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          temp: item.main.temp.toFixed(1),
-          icon: getWeatherIcon(item.weather[0].description)
-        }));
+      forecastInfo.hourly = forecastData.list.slice(0, 12).map((item: any) => ({
+        time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        temp: item.main.temp.toFixed(1),
+        icon: getWeatherIcon(item.weather[0].description)
+      }));
 
-        let dailyTemps: any = {};
-        let dailyIcons: any = {}; // برای ذخیره آیکون‌های هر روز
+      let dailyTemps: any = {};
+      let dailyIcons: any = {};
 
-        forecastData.list.forEach((item: any) => {
-          let day = new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
-          if (!dailyTemps[day]) {
-            dailyTemps[day] = [];
-            dailyIcons[day] = item.weather[0].description; // ذخیره وضعیت هوا برای هر روز
-          }
-          dailyTemps[day].push(item.main.temp);
-        });
+      forecastData.list.forEach((item: any) => {
+        let day = new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
+        if (!dailyTemps[day]) {
+          dailyTemps[day] = [];
+          dailyIcons[day] = item.weather[0].description;
+        }
+        dailyTemps[day].push(item.main.temp);
+      });
 
-        let daysSorted = [...Array(7).keys()].map(i => {
-          return new Date(new Date().setDate(new Date().getDate() + i)).toLocaleDateString('en-US', { weekday: 'short' });
-        });
+      let daysSorted = [...Array(7).keys()].map(i => {
+        return new Date(new Date().setDate(new Date().getDate() + i)).toLocaleDateString('en-US', { weekday: 'short' });
+      });
 
-        forecastInfo.daily = daysSorted.map(day => ({
-          day,
-          temp: (dailyTemps[day] || [0]).reduce((a: number, b: number) => a + b, 0) / (dailyTemps[day] || [1]).length,
-          icon: getWeatherIcon(dailyIcons[day]) // استفاده از آیکون مربوط به هر روز
-        }));
+      forecastInfo.daily = daysSorted.map(day => ({
+        day,
+        temp: (dailyTemps[day] || [0]).reduce((a: number, b: number) => a + b, 0) / (dailyTemps[day] || [1]).length,
+        icon: getWeatherIcon(dailyIcons[day])
+      }));
 
-        showWeather = true;
-      }, 500); // تاخیر ۵۰۰ میلی‌ثانیه برای شبیه‌سازی Lazy Loading
+      showWeather = true;
     } catch (err: any) {
       error = `Failed to fetch weather data: ${err.message}`;
     } finally {
@@ -100,8 +99,9 @@
     }
   }
 
+  // انتخاب آیکون بر اساس وضعیت هوا
   function getWeatherIcon(description: string) {
-    if (!description) return '❓'; // اگر وضعیت هوا تعریف نشده باشد
+    if (!description) return '❓';
     if (description.includes('clear')) return '☀️';
     if (description.includes('cloud')) return '☁️';
     if (description.includes('rain')) return '🌧';
@@ -110,6 +110,7 @@
     return '❓';
   }
 
+  // بارگذاری اولیه
   onMount(() => {
     getWeather();
   });
@@ -234,7 +235,7 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     min-width: 100px;
     flex-shrink: 0;
-    cursor: pointer; /* تغییر نشانگر ماوس به حالت کلیک‌پذیر */
+    cursor: pointer;
   }
 
   .forecast-card p {
@@ -242,7 +243,6 @@
     font-size: 14px;
   }
 
-  /* استایل‌های Modal */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -300,7 +300,6 @@
     background: rgba(255, 255, 255, 0.1);
   }
 
-  /* متغیرهای حالت لایت مود */
   :global(.light-mode) {
     --background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
     --text-color: #333;
@@ -313,7 +312,6 @@
     --scrollbar-track: #f5f7fa;
   }
 
-  /* متغیرهای حالت دارک مود */
   :global(.dark-mode) {
     --background: linear-gradient(135deg, #1e1e2f, #2a2a40);
     --text-color: #fff;
@@ -328,7 +326,6 @@
 </style>
 
 <div class="container" class:light-mode={!isNight} class:dark-mode={isNight}>
-  <!-- سرچ بار -->
   <div class="search-box">
     <input
       type="text"
@@ -338,9 +335,7 @@
     <button on:click={() => getWeather(city)}>Search</button>
   </div>
 
-  <!-- محتوا در وسط صفحه -->
   <div class="content">
-    <!-- باکس نمایش دما -->
     {#if showWeather}
       <div class="weather-box" transition:fade>
         <div class="text-4xl mb-2">{weatherInfo.icon}</div>
@@ -350,7 +345,6 @@
       </div>
     {/if}
 
-    <!-- باکس پیش‌بینی ساعتی با قابلیت اسکرول -->
     <div class="scrollable-forecast">
       {#each forecastInfo.hourly as hour}
         <div class="forecast-card" transition:fly={{ y: 50, duration: 500 }}>
@@ -361,7 +355,6 @@
       {/each}
     </div>
 
-    <!-- باکس پیش‌بینی روزانه با قابلیت اسکرول -->
     <div class="scrollable-forecast">
       {#each forecastInfo.daily as day}
         <div class="forecast-card" transition:fly={{ y: 50, duration: 500 }} on:click={() => openModal(day)}>
@@ -373,23 +366,26 @@
     </div>
   </div>
 
-  <!-- Modal برای نمایش جزئیات روز انتخاب‌شده -->
   {#if showModal}
     <div class="modal-overlay" on:click={closeModal}>
       <div class="modal-content" transition:slide={{ y: 100, duration: 300 }} on:click|stopPropagation>
         <div class="modal-header">
-          <h3>Hourly Forecast for {selectedDay[0].time}</h3>
+          <h3>Hourly Forecast for {selectedDay[0]?.time}</h3>
           <button on:click={closeModal}>×</button>
         </div>
-        <div class="modal-hourly">
-          {#each selectedDay as hour}
-            <div class="modal-hourly-item">
-              <div>{hour.time}</div>
-              <div>{hour.temp}°C</div>
-              <div>{hour.icon}</div>
-            </div>
-          {/each}
-        </div>
+        {#if selectedDay.length > 0}
+          <div class="modal-hourly">
+            {#each selectedDay as hour}
+              <div class="modal-hourly-item">
+                <div>{hour.time}</div>
+                <div>{hour.temp}°C</div>
+                <div>{hour.icon}</div>
+              </div>
+            {/each}
+          </div>
+        {:else}
+          <p>No hourly data available for this day.</p>
+        {/if}
       </div>
     </div>
   {/if}
