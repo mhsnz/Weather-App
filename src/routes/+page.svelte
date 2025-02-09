@@ -159,7 +159,7 @@
     font-size: 18px;
   }
 
-  .hourly-forecast {
+  .scrollable-forecast {
     display: flex;
     overflow-x: auto;
     gap: 10px;
@@ -170,20 +170,20 @@
     scrollbar-color: #ff6f61 #f5f7fa;
   }
 
-  .hourly-forecast::-webkit-scrollbar {
+  .scrollable-forecast::-webkit-scrollbar {
     height: 8px;
   }
 
-  .hourly-forecast::-webkit-scrollbar-thumb {
+  .scrollable-forecast::-webkit-scrollbar-thumb {
     background: #ff6f61;
     border-radius: 4px;
   }
 
-  .hourly-forecast::-webkit-scrollbar-track {
+  .scrollable-forecast::-webkit-scrollbar-track {
     background: #f5f7fa;
   }
 
-  .hourly-card {
+  .forecast-card {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -196,45 +196,14 @@
     flex-shrink: 0;
   }
 
-  .hourly-card p {
-    margin: 5px 0;
-    font-size: 14px;
-  }
-
-  .daily-forecast {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    width: 100%;
-    max-width: 600px;
-  }
-
-  .daily-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 15px;
-    border-radius: 15px;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 100%;
-  }
-
-  .daily-card p {
+  .forecast-card p {
     margin: 5px 0;
     font-size: 14px;
   }
 
   @media (max-width: 768px) {
-    .daily-forecast {
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .daily-card {
-      width: 100%;
-      max-width: 300px;
+    .scrollable-forecast {
+      max-width: 100%;
     }
   }
 </style>
@@ -263,9 +232,9 @@
     {/if}
 
     <!-- باکس پیش‌بینی ساعتی با قابلیت اسکرول -->
-    <div class="hourly-forecast">
+    <div class="scrollable-forecast">
       {#each forecastInfo.hourly as hour}
-        <div class="hourly-card">
+        <div class="forecast-card">
           <div>{hour.icon}</div>
           <p>{hour.time}</p>
           <p>{hour.temp}°C</p>
@@ -273,10 +242,10 @@
       {/each}
     </div>
 
-    <!-- باکس پیش‌بینی روزانه -->
-    <div class="daily-forecast">
+    <!-- باکس پیش‌بینی روزانه با قابلیت اسکرول -->
+    <div class="scrollable-forecast">
       {#each forecastInfo.daily as day}
-        <div class="daily-card">
+        <div class="forecast-card">
           <div>{day.icon}</div>
           <p>{day.day}</p>
           <p>{day.temp.toFixed(1)}°C</p>
