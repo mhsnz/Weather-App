@@ -1,12 +1,39 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		%sveltekit.head%
-	</head>
-	<body data-sveltekit-preload-data="hover">
-		<div style="display: contents">%sveltekit.body%</div>
-	</body>
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="%sveltekit.assets%/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- اضافه کردن لینک به manifest.json -->
+  <link rel="manifest" href="%sveltekit.assets%/manifest.json" />
+  
+  <!-- اضافه کردن theme-color برای حالت دارک/لایت مود -->
+  <meta name="theme-color" content="#ffffff" />
+  
+  <!-- اضافه کردن توضیحات برای SEO و PWA -->
+  <meta name="description" content="A weather app built with SvelteKit and PWA features." />
+  <meta name="author" content="Your Name" />
+  
+  <!-- لینک به فایل‌های استایل و اسکریپت -->
+  %sveltekit.head%
+</head>
+<body data-sveltekit-preload-data="hover">
+  <div style="display: contents">
+    %sveltekit.body%
+  </div>
+
+  <!-- اضافه کردن اسکریپت برای ثبت سرویس‌ورکر -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('%sveltekit.assets%/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+    }
+  </script>
+</body>
 </html>
