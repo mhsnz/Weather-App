@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { fade, fly } from 'svelte/transition'; // وارد کردن انیمیشن‌ها
+  import { fade, fly, slide } from 'svelte/transition'; // وارد کردن انیمیشن‌ها
 
   let city = '';
   let weatherInfo: any = null;
@@ -9,12 +9,29 @@
   let error: any = null;
   let showWeather = false;
   let isNight = false; // حالت شب یا روز
+  let selectedDay: any = null; // روز انتخاب‌شده برای نمایش جزئیات
+  let showModal = false; // کنترل نمایش Modal
   const API_KEY = '0ab98e88df7c8d0da4dde8a63121d1f3';
 
   // تابع برای بررسی زمان شب یا روز
   function checkNightMode(sunrise: number, sunset: number) {
     const now = Math.floor(Date.now() / 1000); // زمان فعلی به ثانیه
     isNight = now < sunrise || now > sunset; // اگر قبل از طلوع یا بعد از غروب باشد، شب است
+  }
+
+  // تابع برای باز کردن Modal و نمایش جزئیات روز انتخاب‌شده
+  function openModal(day: any) {
+    selectedDay = forecastInfo.hourly.filter((hour: any) => {
+      const hourDay = new Date(hour.time).toLocaleDateString('en-US', { weekday: 'short' });
+      return hourDay === day.day;
+    });
+    showModal = true;
+  }
+
+  // تابع برای بستن Modal
+  function closeModal() {
+    showModal = false;
+    selectedDay = null;
   }
 
   async function getWeather(selectedCity = 'Tehran') {
@@ -46,7 +63,7 @@
         const forecastResponse = await fetch(forecastUrl);
         const forecastData = await forecastResponse.json();
 
-        forecastInfo.hourly = forecastData.list.slice(0, 12).map(item => ({
+        forecastInfo.hourly = forecastData.list.slice(0, 12).map((item: any) => ({
           time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           temp: item.main.temp.toFixed(1),
           icon: getWeatherIcon(item.weather[0].description)
@@ -55,7 +72,7 @@
         let dailyTemps: any = {};
         let dailyIcons: any = {}; // برای ذخیره آیکون‌های هر روز
 
-        forecastData.list.forEach(item => {
+        forecastData.list.forEach((item: any) => {
           let day = new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
           if (!dailyTemps[day]) {
             dailyTemps[day] = [];
@@ -70,7 +87,7 @@
 
         forecastInfo.daily = daysSorted.map(day => ({
           day,
-          temp: (dailyTemps[day] || [0]).reduce((a, b) => a + b, 0) / (dailyTemps[day] || [1]).length,
+          temp: (dailyTemps[day] || [0]).reduce((a: number, b: number) => a + b, 0) / (dailyTemps[day] || [1]).length,
           icon: getWeatherIcon(dailyIcons[day]) // استفاده از آیکون مربوط به هر روز
         }));
 
@@ -217,11 +234,70 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     min-width: 100px;
     flex-shrink: 0;
+    cursor: pointer; /* تغییر نشانگر ماوس به حالت کلیک‌پذیر */
   }
 
   .forecast-card p {
     margin: 5px 0;
     font-size: 14px;
+  }
+
+  /* استایل‌های Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background: var(--box-bg);
+    width: 80%;
+    max-width: 600px;
+    border-radius: 15px 15px 0 0;
+    padding: 20px;
+    box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+  }
+
+  .modal-header button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-color);
+  }
+
+  .modal-hourly {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modal-hourly-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
   }
 
   /* متغیرهای حالت لایت مود */
@@ -288,7 +364,7 @@
     <!-- باکس پیش‌بینی روزانه با قابلیت اسکرول -->
     <div class="scrollable-forecast">
       {#each forecastInfo.daily as day}
-        <div class="forecast-card" transition:fly={{ y: 50, duration: 500 }}>
+        <div class="forecast-card" transition:fly={{ y: 50, duration: 500 }} on:click={() => openModal(day)}>
           <div>{day.icon}</div>
           <p>{day.day}</p>
           <p>{day.temp.toFixed(1)}°C</p>
@@ -296,4 +372,25 @@
       {/each}
     </div>
   </div>
+
+  <!-- Modal برای نمایش جزئیات روز انتخاب‌شده -->
+  {#if showModal}
+    <div class="modal-overlay" on:click={closeModal}>
+      <div class="modal-content" transition:slide={{ y: 100, duration: 300 }} on:click|stopPropagation>
+        <div class="modal-header">
+          <h3>Hourly Forecast for {selectedDay[0].time}</h3>
+          <button on:click={closeModal}>×</button>
+        </div>
+        <div class="modal-hourly">
+          {#each selectedDay as hour}
+            <div class="modal-hourly-item">
+              <div>{hour.time}</div>
+              <div>{hour.temp}°C</div>
+              <div>{hour.icon}</div>
+            </div>
+          {/each}
+        </div>
+      </div>
+    </div>
+  {/if}
 </div>
