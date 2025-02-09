@@ -22,8 +22,8 @@
   // باز کردن Modal و نمایش جزئیات روز انتخاب‌شده
   function openModal(day: any) {
     selectedDay = forecastInfo.hourly.filter((hour: any) => {
-      const hourDay = new Date(hour.time).toLocaleDateString('en-US', { weekday: 'short' });
-      return hourDay === day.day;
+      const hourDate = new Date(hour.time).toLocaleDateString('en-US', { weekday: 'short' });
+      return hourDate === day.day;
     });
     showModal = true;
   }
