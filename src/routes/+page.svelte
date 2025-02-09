@@ -11,6 +11,7 @@
   let isNight = false;
   let selectedDay: any = null;
   let showModal = false;
+  let temperatureMessage: string = ''; // پیام بر اساس دما
   const API_KEY = '0ab98e88df7c8d0da4dde8a63121d1f3';
 
   // بررسی حالت شب یا روز
@@ -19,12 +20,22 @@
     isNight = now < sunrise || now > sunset;
   }
 
-  // باز کردن Modal و نمایش جزئیات روز انتخاب‌شده
+  // باز کردن Modal و نمایش پیام بر اساس دما
   function openModal(day: any) {
     selectedDay = forecastInfo.hourly.filter((hour: any) => {
       const hourDate = new Date(hour.time).toLocaleDateString('en-US', { weekday: 'short' });
       return hourDate === day.day;
     });
+
+    // تعیین پیام بر اساس دمای روز
+    if (day.temp < 0) {
+      temperatureMessage = "Bundle up, it's freezing cold!";
+    } else if (day.temp >= 0 && day.temp <= 5) {
+      temperatureMessage = "Don't think it's warm yet, it's still cold!";
+    } else {
+      temperatureMessage = "Time to look stylish without a jacket!";
+    }
+
     showModal = true;
   }
 
@@ -32,6 +43,7 @@
   function closeModal() {
     showModal = false;
     selectedDay = null;
+    temperatureMessage = '';
   }
 
   // دریافت اطلاعات آب و هوا
@@ -383,9 +395,8 @@
               </div>
             {/each}
           </div>
-        {:else}
-          <p>No hourly data available for this day.</p>
         {/if}
+        <p style="text-align: center; font-weight: bold; margin-top: 20px;">{temperatureMessage}</p>
       </div>
     </div>
   {/if}
