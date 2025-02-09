@@ -7,6 +7,7 @@
   let loading = false;
   let error: any = null;
   let showWeather = false;
+  let isNight = false; // حالت شب یا روز
   const API_KEY = '0ab98e88df7c8d0da4dde8a63121d1f3';
 
   async function getWeather(selectedCity = 'Tehran') {
@@ -21,6 +22,12 @@
       const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY}`;
       const weatherResponse = await fetch(weatherUrl);
       const weatherData = await weatherResponse.json();
+
+      // بررسی زمان طلوع و غروب خورشید
+      const now = Math.floor(Date.now() / 1000); // زمان فعلی به ثانیه
+      const sunrise = weatherData.sys.sunrise; // زمان طلوع خورشید
+      const sunset = weatherData.sys.sunset; // زمان غروب خورشید
+      isNight = now < sunrise || now > sunset; // اگر قبل از طلوع یا بعد از غروب باشد، شب است
 
       weatherInfo = {
         icon: getWeatherIcon(weatherData.weather[0].description),
@@ -79,11 +86,11 @@
 </script>
 
 <style>
-  body {
+  :global(body) {
     margin: 0;
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
     color: #333;
+    transition: background 0.3s ease, color 0.3s ease;
   }
 
   .container {
@@ -93,6 +100,8 @@
     justify-content: center;
     min-height: 100vh;
     padding: 20px;
+    background: var(--background);
+    color: var(--text-color);
   }
 
   .search-box {
@@ -109,7 +118,8 @@
     border-radius: 25px;
     outline: none;
     font-size: 16px;
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--input-bg);
+    color: var(--text-color);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
 
@@ -117,15 +127,15 @@
     padding: 10px 20px;
     border: none;
     border-radius: 25px;
-    background: #ff6f61;
-    color: white;
+    background: var(--button-bg);
+    color: var(--button-text);
     font-size: 16px;
     cursor: pointer;
     transition: background 0.3s ease;
   }
 
   button:hover {
-    background: #ff3b2f;
+    background: var(--button-hover-bg);
   }
 
   .content {
@@ -141,7 +151,7 @@
     text-align: center;
     padding: 20px;
     border-radius: 15px;
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--box-bg);
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
@@ -167,7 +177,7 @@
     width: 100%;
     max-width: 600px;
     scrollbar-width: thin;
-    scrollbar-color: #ff6f61 #f5f7fa;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
 
   .scrollable-forecast::-webkit-scrollbar {
@@ -175,12 +185,12 @@
   }
 
   .scrollable-forecast::-webkit-scrollbar-thumb {
-    background: #ff6f61;
+    background: var(--scrollbar-thumb);
     border-radius: 4px;
   }
 
   .scrollable-forecast::-webkit-scrollbar-track {
-    background: #f5f7fa;
+    background: var(--scrollbar-track);
   }
 
   .forecast-card {
@@ -189,7 +199,7 @@
     align-items: center;
     padding: 15px;
     border-radius: 15px;
-    background: rgba(255, 255, 255, 0.8);
+    background: var(--box-bg);
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     min-width: 100px;
@@ -201,14 +211,34 @@
     font-size: 14px;
   }
 
-  @media (max-width: 768px) {
-    .scrollable-forecast {
-      max-width: 100%;
-    }
+  /* متغیرهای حالت لایت مود */
+  :global(.light-mode) {
+    --background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    --text-color: #333;
+    --input-bg: rgba(255, 255, 255, 0.8);
+    --button-bg: #ff6f61;
+    --button-text: white;
+    --button-hover-bg: #ff3b2f;
+    --box-bg: rgba(255, 255, 255, 0.8);
+    --scrollbar-thumb: #ff6f61;
+    --scrollbar-track: #f5f7fa;
+  }
+
+  /* متغیرهای حالت دارک مود */
+  :global(.dark-mode) {
+    --background: linear-gradient(135deg, #1e1e2f, #2a2a40);
+    --text-color: #fff;
+    --input-bg: rgba(255, 255, 255, 0.1);
+    --button-bg: #ff6f61;
+    --button-text: white;
+    --button-hover-bg: #ff3b2f;
+    --box-bg: rgba(255, 255, 255, 0.1);
+    --scrollbar-thumb: #ff6f61;
+    --scrollbar-track: #1e1e2f;
   }
 </style>
 
-<div class="container">
+<div class="container" class:light-mode={!isNight} class:dark-mode={isNight}>
   <!-- سرچ بار -->
   <div class="search-box">
     <input
