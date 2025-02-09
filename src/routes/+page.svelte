@@ -264,29 +264,18 @@
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
-    align-items: flex-end;
+    align-items: center;
     z-index: 1000;
   }
 
   .modal-content {
     background: var(--box-bg);
     width: 80%;
-    max-width: 600px;
-    border-radius: 15px 15px 0 0;
+    max-width: 400px;
+    border-radius: 15px;
     padding: 20px;
-    box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-
-  .modal-header h3 {
-    margin: 0;
-    font-size: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
   }
 
   .modal-header button {
@@ -297,19 +286,10 @@
     color: var(--text-color);
   }
 
-  .modal-hourly {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .modal-hourly-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.1);
+  .message {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px;
   }
 
   :global(.light-mode) {
@@ -380,23 +360,9 @@
 
   {#if showModal}
     <div class="modal-overlay" on:click={closeModal}>
-      <div class="modal-content" transition:slide={{ y: 100, duration: 300 }} on:click|stopPropagation>
-        <div class="modal-header">
-          <h3>Hourly Forecast for {selectedDay[0]?.time}</h3>
-          <button on:click={closeModal}>×</button>
-        </div>
-        {#if selectedDay.length > 0}
-          <div class="modal-hourly">
-            {#each selectedDay as hour}
-              <div class="modal-hourly-item">
-                <div>{hour.time}</div>
-                <div>{hour.temp}°C</div>
-                <div>{hour.icon}</div>
-              </div>
-            {/each}
-          </div>
-        {/if}
-        <p style="text-align: center; font-weight: bold; margin-top: 20px;">{temperatureMessage}</p>
+      <div class="modal-content" transition:fly={{ y: -50, duration: 300 }} on:click|stopPropagation>
+        <button on:click={closeModal}>×</button>
+        <div class="message" transition:fade>{{temperatureMessage}}</div>
       </div>
     </div>
   {/if}
