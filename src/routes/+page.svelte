@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { fade, fly } from 'svelte/transition'; // وارد کردن انیمیشن‌ها
 
   let city = '';
   let weatherInfo: any = null;
@@ -9,6 +10,12 @@
   let showWeather = false;
   let isNight = false; // حالت شب یا روز
   const API_KEY = '0ab98e88df7c8d0da4dde8a63121d1f3';
+
+  // تابع برای بررسی زمان شب یا روز
+  function checkNightMode(sunrise: number, sunset: number) {
+    const now = Math.floor(Date.now() / 1000); // زمان فعلی به ثانیه
+    isNight = now < sunrise || now > sunset; // اگر قبل از طلوع یا بعد از غروب باشد، شب است
+  }
 
   async function getWeather(selectedCity = 'Tehran') {
     if (!selectedCity) return;
@@ -24,10 +31,7 @@
       const weatherData = await weatherResponse.json();
 
       // بررسی زمان طلوع و غروب خورشید
-      const now = Math.floor(Date.now() / 1000); // زمان فعلی به ثانیه
-      const sunrise = weatherData.sys.sunrise; // زمان طلوع خورشید
-      const sunset = weatherData.sys.sunset; // زمان غروب خورشید
-      isNight = now < sunrise || now > sunset; // اگر قبل از طلوع یا بعد از غروب باشد، شب است
+      checkNightMode(weatherData.sys.sunrise, weatherData.sys.sunset);
 
       weatherInfo = {
         icon: getWeatherIcon(weatherData.weather[0].description),
@@ -36,39 +40,42 @@
         description: weatherData.weather[0].description
       };
 
-      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${selectedCity}&units=metric&appid=${API_KEY}`;
-      const forecastResponse = await fetch(forecastUrl);
-      const forecastData = await forecastResponse.json();
+      // بارگذاری پیش‌بینی آب و هوا به صورت Lazy
+      setTimeout(async () => {
+        const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${selectedCity}&units=metric&appid=${API_KEY}`;
+        const forecastResponse = await fetch(forecastUrl);
+        const forecastData = await forecastResponse.json();
 
-      forecastInfo.hourly = forecastData.list.slice(0, 12).map(item => ({
-        time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        temp: item.main.temp.toFixed(1),
-        icon: getWeatherIcon(item.weather[0].description)
-      }));
+        forecastInfo.hourly = forecastData.list.slice(0, 12).map(item => ({
+          time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          temp: item.main.temp.toFixed(1),
+          icon: getWeatherIcon(item.weather[0].description)
+        }));
 
-      let dailyTemps: any = {};
-      let dailyIcons: any = {}; // برای ذخیره آیکون‌های هر روز
+        let dailyTemps: any = {};
+        let dailyIcons: any = {}; // برای ذخیره آیکون‌های هر روز
 
-      forecastData.list.forEach(item => {
-        let day = new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
-        if (!dailyTemps[day]) {
-          dailyTemps[day] = [];
-          dailyIcons[day] = item.weather[0].description; // ذخیره وضعیت هوا برای هر روز
-        }
-        dailyTemps[day].push(item.main.temp);
-      });
+        forecastData.list.forEach(item => {
+          let day = new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
+          if (!dailyTemps[day]) {
+            dailyTemps[day] = [];
+            dailyIcons[day] = item.weather[0].description; // ذخیره وضعیت هوا برای هر روز
+          }
+          dailyTemps[day].push(item.main.temp);
+        });
 
-      let daysSorted = [...Array(7).keys()].map(i => {
-        return new Date(new Date().setDate(new Date().getDate() + i)).toLocaleDateString('en-US', { weekday: 'short' });
-      });
+        let daysSorted = [...Array(7).keys()].map(i => {
+          return new Date(new Date().setDate(new Date().getDate() + i)).toLocaleDateString('en-US', { weekday: 'short' });
+        });
 
-      forecastInfo.daily = daysSorted.map(day => ({
-        day,
-        temp: (dailyTemps[day] || [0]).reduce((a, b) => a + b, 0) / (dailyTemps[day] || [1]).length,
-        icon: getWeatherIcon(dailyIcons[day]) // استفاده از آیکون مربوط به هر روز
-      }));
+        forecastInfo.daily = daysSorted.map(day => ({
+          day,
+          temp: (dailyTemps[day] || [0]).reduce((a, b) => a + b, 0) / (dailyTemps[day] || [1]).length,
+          icon: getWeatherIcon(dailyIcons[day]) // استفاده از آیکون مربوط به هر روز
+        }));
 
-      showWeather = true;
+        showWeather = true;
+      }, 500); // تاخیر ۵۰۰ میلی‌ثانیه برای شبیه‌سازی Lazy Loading
     } catch (err: any) {
       error = `Failed to fetch weather data: ${err.message}`;
     } finally {
@@ -259,7 +266,7 @@
   <div class="content">
     <!-- باکس نمایش دما -->
     {#if showWeather}
-      <div class="weather-box">
+      <div class="weather-box" transition:fade>
         <div class="text-4xl mb-2">{weatherInfo.icon}</div>
         <h2>{weatherInfo.name}</h2>
         <p>Temperature: {weatherInfo.tempCelsius}°C</p>
@@ -270,7 +277,7 @@
     <!-- باکس پیش‌بینی ساعتی با قابلیت اسکرول -->
     <div class="scrollable-forecast">
       {#each forecastInfo.hourly as hour}
-        <div class="forecast-card">
+        <div class="forecast-card" transition:fly={{ y: 50, duration: 500 }}>
           <div>{hour.icon}</div>
           <p>{hour.time}</p>
           <p>{hour.temp}°C</p>
@@ -281,7 +288,7 @@
     <!-- باکس پیش‌بینی روزانه با قابلیت اسکرول -->
     <div class="scrollable-forecast">
       {#each forecastInfo.daily as day}
-        <div class="forecast-card">
+        <div class="forecast-card" transition:fly={{ y: 50, duration: 500 }}>
           <div>{day.icon}</div>
           <p>{day.day}</p>
           <p>{day.temp.toFixed(1)}°C</p>
