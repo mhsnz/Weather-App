@@ -156,6 +156,8 @@
     getWeather('Tehran');
   });
 </script>
+
+<style>
   :global(body) {
     margin: 0;
     font-family: 'Arial', sans-serif;
@@ -360,8 +362,6 @@
     --scrollbar-thumb: #ff6f61;
     --scrollbar-track: #1e1e2f;
   }
-<style>
-  
 </style>
 
 <div class="container" class:light-mode={!isNight} class:dark-mode={isNight}>
