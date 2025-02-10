@@ -13,7 +13,6 @@
   let showModal = false;
   let temperatureMessage: string = ''; // پیام بر اساس دما
   const API_KEY = '0ab98e88df7c8d0da4dde8a63121d1f3';
-  const IPINFO_TOKEN = 'YOUR_IPINFO_TOKEN'; // توکن خود را از ipinfo.io دریافت کنید
 
   // بررسی حالت شب یا روز
   function checkNightMode(sunrise: number, sunset: number) {
@@ -47,8 +46,9 @@
     temperatureMessage = '';
   }
 
-  // دریافت اطلاعات آب و هوا بر اساس مختصات جغرافیایی
-  async function getWeatherByCoords(lat: number, lon: number) {
+  // دریافت اطلاعات آب و هوا
+  async function getWeather(selectedCity = 'Tehran') {
+    if (!selectedCity) return;
     loading = true;
     error = null;
     weatherInfo = null;
@@ -56,7 +56,7 @@
     showWeather = false;
 
     try {
-      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
+      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY}`;
       const weatherResponse = await fetch(weatherUrl);
       const weatherData = await weatherResponse.json();
 
@@ -71,7 +71,7 @@
       };
 
       // دریافت پیش‌بینی آب و هوا
-      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
+      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${selectedCity}&units=metric&appid=${API_KEY}`;
       const forecastResponse = await fetch(forecastUrl);
       const forecastData = await forecastResponse.json();
 
@@ -111,18 +111,6 @@
     }
   }
 
-  // دریافت موقعیت جغرافیایی بر اساس IP کاربر با استفاده از ipinfo.io
-  async function getUserLocationByIP() {
-    try {
-      const response = await fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`);
-      const data = await response.json();
-      const [lat, lon] = data.loc.split(',').map(Number); // دریافت مختصات از فیلد loc
-      getWeatherByCoords(lat, lon);
-    } catch (err: any) {
-      error = `Failed to fetch location: ${err.message}`;
-    }
-  }
-
   // انتخاب آیکون بر اساس وضعیت هوا
   function getWeatherIcon(description: string) {
     if (!description) return '❓';
@@ -136,7 +124,7 @@
 
   // بارگذاری اولیه
   onMount(() => {
-    getUserLocationByIP(); // دریافت لوکیشن کاربر بر اساس IP
+    getWeather();
   });
 </script>
 
@@ -336,7 +324,7 @@
       bind:value={city}
       placeholder="Search for a city..."
     />
-    <button on:click={() => getWeatherByCoords(35.6895, 51.3890)}>Search</button>
+    <button on:click={() => getWeather(city)}>Search</button>
   </div>
 
   <div class="content">
