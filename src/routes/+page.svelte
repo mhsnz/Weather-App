@@ -46,9 +46,8 @@
     temperatureMessage = '';
   }
 
-  // دریافت اطلاعات آب و هوا
-  async function getWeather(selectedCity = 'Tehran') {
-    if (!selectedCity) return;
+  // دریافت اطلاعات آب و هوا بر اساس مختصات جغرافیایی
+  async function getWeatherByCoords(lat: number, lon: number) {
     loading = true;
     error = null;
     weatherInfo = null;
@@ -56,7 +55,7 @@
     showWeather = false;
 
     try {
-      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY}`;
+      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
       const weatherResponse = await fetch(weatherUrl);
       const weatherData = await weatherResponse.json();
 
@@ -71,7 +70,7 @@
       };
 
       // دریافت پیش‌بینی آب و هوا
-      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${selectedCity}&units=metric&appid=${API_KEY}`;
+      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
       const forecastResponse = await fetch(forecastUrl);
       const forecastData = await forecastResponse.json();
 
@@ -111,6 +110,23 @@
     }
   }
 
+  // دریافت لوکیشن کاربر
+  function getUserLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          getWeatherByCoords(latitude, longitude);
+        },
+        (err) => {
+          error = `Failed to get location: ${err.message}`;
+        }
+      );
+    } else {
+      error = "Geolocation is not supported by this browser.";
+    }
+  }
+
   // انتخاب آیکون بر اساس وضعیت هوا
   function getWeatherIcon(description: string) {
     if (!description) return '❓';
@@ -124,7 +140,7 @@
 
   // بارگذاری اولیه
   onMount(() => {
-    getWeather();
+    getUserLocation(); // دریافت لوکیشن کاربر هنگام بارگذاری صفحه
   });
 </script>
 
@@ -324,7 +340,7 @@
       bind:value={city}
       placeholder="Search for a city..."
     />
-    <button on:click={() => getWeather(city)}>Search</button>
+    <button on:click={() => getWeatherByCoords(35.6895, 51.3890)}>Search</button>
   </div>
 
   <div class="content">
