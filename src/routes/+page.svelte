@@ -70,6 +70,11 @@
         description: weatherData.weather[0].description
       };
 
+      // نمایش پیام خاص برای تهران
+      if (selectedCity.toLowerCase() === 'tehran') {
+        alert("My friend, I'm showing you Tehran.");
+      }
+
       // دریافت پیش‌بینی آب و هوا
       const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${selectedCity}&units=metric&appid=${API_KEY}`;
       const forecastResponse = await fetch(forecastUrl);
@@ -120,6 +125,86 @@
     if (description.includes('snow')) return '❄️';
     if (description.includes('storm')) return '⛈';
     return '❓';
+  }
+
+  // دریافت موقعیت کاربر
+  function getLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          getWeatherByCoords(latitude, longitude);
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          alert('Unable to retrieve your location.');
+        }
+      );
+    } else {
+      alert('Geolocation is not supported by your browser.');
+    }
+  }
+
+  // دریافت آب و هوا بر اساس مختصات
+  async function getWeatherByCoords(lat: number, lon: number) {
+    loading = true;
+    error = null;
+    weatherInfo = null;
+    forecastInfo = { hourly: [], daily: [] };
+    showWeather = false;
+
+    try {
+      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
+      const weatherResponse = await fetch(weatherUrl);
+      const weatherData = await weatherResponse.json();
+
+      checkNightMode(weatherData.sys.sunrise, weatherData.sys.sunset);
+
+      weatherInfo = {
+        icon: getWeatherIcon(weatherData.weather[0].description),
+        name: weatherData.name,
+        tempCelsius: weatherData.main.temp.toFixed(1),
+        description: weatherData.weather[0].description
+      };
+
+      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
+      const forecastResponse = await fetch(forecastUrl);
+      const forecastData = await forecastResponse.json();
+
+      forecastInfo.hourly = forecastData.list.slice(0, 12).map((item: any) => ({
+        time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        temp: item.main.temp.toFixed(1),
+        icon: getWeatherIcon(item.weather[0].description)
+      }));
+
+      let dailyTemps: any = {};
+      let dailyIcons: any = {};
+
+      forecastData.list.forEach((item: any) => {
+        let day = new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
+        if (!dailyTemps[day]) {
+          dailyTemps[day] = [];
+          dailyIcons[day] = item.weather[0].description;
+        }
+        dailyTemps[day].push(item.main.temp);
+      });
+
+      let daysSorted = [...Array(7).keys()].map(i => {
+        return new Date(new Date().setDate(new Date().getDate() + i)).toLocaleDateString('en-US', { weekday: 'short' });
+      });
+
+      forecastInfo.daily = daysSorted.map(day => ({
+        day,
+        temp: (dailyTemps[day] || [0]).reduce((a: number, b: number) => a + b, 0) / (dailyTemps[day] || [1]).length,
+        icon: getWeatherIcon(dailyIcons[day])
+      }));
+
+      showWeather = true;
+    } catch (err: any) {
+      error = `Failed to fetch weather data: ${err.message}`;
+    } finally {
+      loading = false;
+    }
   }
 
   // بارگذاری اولیه
@@ -178,6 +263,24 @@
   }
 
   button:hover {
+    background: var(--button-hover-bg);
+  }
+
+  .location-button {
+    padding: 10px;
+    border: none;
+    border-radius: 50%;
+    background: var(--button-bg);
+    color: var(--button-text);
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .location-button:hover {
     background: var(--button-hover-bg);
   }
 
@@ -325,6 +428,7 @@
       placeholder="Search for a city..."
     />
     <button on:click={() => getWeather(city)}>Search</button>
+    <button class="location-button" on:click={getLocation}>📍</button>
   </div>
 
   <div class="content">
