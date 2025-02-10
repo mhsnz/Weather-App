@@ -110,15 +110,20 @@
     }
   }
 
-  // دریافت موقعیت جغرافیایی بر اساس IP کاربر
-  async function getUserLocationByIP() {
-    try {
-      const response = await fetch('https://ipapi.co/json/');
-      const data = await response.json();
-      const { latitude, longitude } = data;
-      getWeatherByCoords(latitude, longitude);
-    } catch (err: any) {
-      error = `Failed to fetch location: ${err.message}`;
+  // دریافت لوکیشن کاربر
+  function getUserLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          getWeatherByCoords(latitude, longitude);
+        },
+        (err) => {
+          error = `Failed to get location: ${err.message}`;
+        }
+      );
+    } else {
+      error = "Geolocation is not supported by this browser.";
     }
   }
 
@@ -135,7 +140,7 @@
 
   // بارگذاری اولیه
   onMount(() => {
-    getUserLocationByIP(); // دریافت لوکیشن کاربر بر اساس IP
+    getUserLocation(); // دریافت لوکیشن کاربر هنگام بارگذاری صفحه
   });
 </script>
 
