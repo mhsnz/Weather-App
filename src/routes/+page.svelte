@@ -13,6 +13,7 @@
   let showModal = false;
   let temperatureMessage: string = ''; // پیام بر اساس دما
   const API_KEY = '0ab98e88df7c8d0da4dde8a63121d1f3';
+  const IPINFO_TOKEN = 'YOUR_IPINFO_TOKEN'; // توکن خود را از ipinfo.io دریافت کنید
 
   // بررسی حالت شب یا روز
   function checkNightMode(sunrise: number, sunset: number) {
@@ -110,20 +111,15 @@
     }
   }
 
-  // دریافت لوکیشن کاربر
-  function getUserLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          getWeatherByCoords(latitude, longitude);
-        },
-        (err) => {
-          error = `Failed to get location: ${err.message}`;
-        }
-      );
-    } else {
-      error = "Geolocation is not supported by this browser.";
+  // دریافت موقعیت جغرافیایی بر اساس IP کاربر با استفاده از ipinfo.io
+  async function getUserLocationByIP() {
+    try {
+      const response = await fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`);
+      const data = await response.json();
+      const [lat, lon] = data.loc.split(',').map(Number); // دریافت مختصات از فیلد loc
+      getWeatherByCoords(lat, lon);
+    } catch (err: any) {
+      error = `Failed to fetch location: ${err.message}`;
     }
   }
 
@@ -140,7 +136,7 @@
 
   // بارگذاری اولیه
   onMount(() => {
-    getUserLocation(); // دریافت لوکیشن کاربر هنگام بارگذاری صفحه
+    getUserLocationByIP(); // دریافت لوکیشن کاربر بر اساس IP
   });
 </script>
 
