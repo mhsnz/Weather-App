@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { fade, fly, slide } from 'svelte/transition';
+  import { fade, fly } from 'svelte/transition';
 
   let city = '';
   let weatherInfo: any = null;
@@ -11,8 +11,9 @@
   let isNight = false;
   let selectedDay: any = null;
   let showModal = false;
-  let temperatureMessage: string = ''; // پیام بر اساس دما
+  let temperatureMessage: string = '';
   const API_KEY = '0ab98e88df7c8d0da4dde8a63121d1f3';
+  let lastSearchedCity: string | null = null; // ذخیره آخرین شهر جستجو شده
 
   // بررسی حالت شب یا روز
   function checkNightMode(sunrise: number, sunset: number) {
@@ -46,9 +47,16 @@
     temperatureMessage = '';
   }
 
-  // دریافت اطلاعات آب و هوا
-  async function getWeather(selectedCity = 'Tehran') {
-    if (!selectedCity) return;
+  // دریافت اطلاعات آب و هوا و پیش‌بینی
+  async function fetchWeatherData(url: string) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch weather data');
+    return response.json();
+  }
+
+  // دریافت آب و هوا بر اساس شهر یا مختصات
+  async function getWeather(cityOrCoords: string | { lat: number; lon: number }) {
+    if (!cityOrCoords) return;
     loading = true;
     error = null;
     weatherInfo = null;
@@ -56,34 +64,39 @@
     showWeather = false;
 
     try {
-      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&units=metric&appid=${API_KEY}`;
-      const weatherResponse = await fetch(weatherUrl);
-      const weatherData = await weatherResponse.json();
+      const isCity = typeof cityOrCoords === 'string';
+      const weatherUrl = isCity
+        ? `https://api.openweathermap.org/data/2.5/weather?q=${cityOrCoords}&units=metric&appid=${API_KEY}`
+        : `https://api.openweathermap.org/data/2.5/weather?lat=${cityOrCoords.lat}&lon=${cityOrCoords.lon}&units=metric&appid=${API_KEY}`;
 
-      // بررسی زمان طلوع و غروب خورشید
+      const forecastUrl = isCity
+        ? `https://api.openweathermap.org/data/2.5/forecast?q=${cityOrCoords}&units=metric&appid=${API_KEY}`
+        : `https://api.openweathermap.org/data/2.5/forecast?lat=${cityOrCoords.lat}&lon=${cityOrCoords.lon}&units=metric&appid=${API_KEY}`;
+
+      const [weatherData, forecastData] = await Promise.all([
+        fetchWeatherData(weatherUrl),
+        fetchWeatherData(forecastUrl),
+      ]);
+
       checkNightMode(weatherData.sys.sunrise, weatherData.sys.sunset);
 
       weatherInfo = {
         icon: getWeatherIcon(weatherData.weather[0].description),
         name: weatherData.name,
         tempCelsius: weatherData.main.temp.toFixed(1),
-        description: weatherData.weather[0].description
+        description: weatherData.weather[0].description,
       };
 
-      // نمایش پیام خاص برای تهران
-      if (selectedCity.toLowerCase() === 'tehran') {
+      // نمایش پیام برای تهران
+      if (weatherData.name.toLowerCase() === 'tehran' && lastSearchedCity !== 'tehran') {
         alert("My friend, I'm showing you Tehran.");
+        lastSearchedCity = 'tehran'; // ذخیره آخرین شهر جستجو شده
       }
-
-      // دریافت پیش‌بینی آب و هوا
-      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${selectedCity}&units=metric&appid=${API_KEY}`;
-      const forecastResponse = await fetch(forecastUrl);
-      const forecastData = await forecastResponse.json();
 
       forecastInfo.hourly = forecastData.list.slice(0, 12).map((item: any) => ({
         time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         temp: item.main.temp.toFixed(1),
-        icon: getWeatherIcon(item.weather[0].description)
+        icon: getWeatherIcon(item.weather[0].description),
       }));
 
       let dailyTemps: any = {};
@@ -105,7 +118,7 @@
       forecastInfo.daily = daysSorted.map(day => ({
         day,
         temp: (dailyTemps[day] || [0]).reduce((a: number, b: number) => a + b, 0) / (dailyTemps[day] || [1]).length,
-        icon: getWeatherIcon(dailyIcons[day])
+        icon: getWeatherIcon(dailyIcons[day]),
       }));
 
       showWeather = true;
@@ -133,7 +146,7 @@
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          getWeatherByCoords(latitude, longitude);
+          getWeather({ lat: latitude, lon: longitude });
         },
         (error) => {
           console.error('Error getting location:', error);
@@ -145,71 +158,9 @@
     }
   }
 
-  // دریافت آب و هوا بر اساس مختصات
-  async function getWeatherByCoords(lat: number, lon: number) {
-    loading = true;
-    error = null;
-    weatherInfo = null;
-    forecastInfo = { hourly: [], daily: [] };
-    showWeather = false;
-
-    try {
-      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
-      const weatherResponse = await fetch(weatherUrl);
-      const weatherData = await weatherResponse.json();
-
-      checkNightMode(weatherData.sys.sunrise, weatherData.sys.sunset);
-
-      weatherInfo = {
-        icon: getWeatherIcon(weatherData.weather[0].description),
-        name: weatherData.name,
-        tempCelsius: weatherData.main.temp.toFixed(1),
-        description: weatherData.weather[0].description
-      };
-
-      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
-      const forecastResponse = await fetch(forecastUrl);
-      const forecastData = await forecastResponse.json();
-
-      forecastInfo.hourly = forecastData.list.slice(0, 12).map((item: any) => ({
-        time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        temp: item.main.temp.toFixed(1),
-        icon: getWeatherIcon(item.weather[0].description)
-      }));
-
-      let dailyTemps: any = {};
-      let dailyIcons: any = {};
-
-      forecastData.list.forEach((item: any) => {
-        let day = new Date(item.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
-        if (!dailyTemps[day]) {
-          dailyTemps[day] = [];
-          dailyIcons[day] = item.weather[0].description;
-        }
-        dailyTemps[day].push(item.main.temp);
-      });
-
-      let daysSorted = [...Array(7).keys()].map(i => {
-        return new Date(new Date().setDate(new Date().getDate() + i)).toLocaleDateString('en-US', { weekday: 'short' });
-      });
-
-      forecastInfo.daily = daysSorted.map(day => ({
-        day,
-        temp: (dailyTemps[day] || [0]).reduce((a: number, b: number) => a + b, 0) / (dailyTemps[day] || [1]).length,
-        icon: getWeatherIcon(dailyIcons[day])
-      }));
-
-      showWeather = true;
-    } catch (err: any) {
-      error = `Failed to fetch weather data: ${err.message}`;
-    } finally {
-      loading = false;
-    }
-  }
-
   // بارگذاری اولیه
   onMount(() => {
-    getWeather();
+    getWeather('Tehran');
   });
 </script>
 
