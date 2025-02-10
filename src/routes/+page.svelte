@@ -13,7 +13,6 @@
   let showModal = false;
   let temperatureMessage: string = '';
   const API_KEY = '0ab98e88df7c8d0da4dde8a63121d1f3';
-  let lastSearchedCity: string | null = null; // ذخیره آخرین شهر جستجو شده
 
   // بررسی حالت شب یا روز
   function checkNightMode(sunrise: number, sunset: number) {
@@ -87,12 +86,6 @@
         description: weatherData.weather[0].description,
       };
 
-      // نمایش پیام برای تهران
-      if (weatherData.name.toLowerCase() === 'tehran' && lastSearchedCity !== 'tehran') {
-        alert("My friend, I'm showing you Tehran.");
-        lastSearchedCity = 'tehran'; // ذخیره آخرین شهر جستجو شده
-      }
-
       forecastInfo.hourly = forecastData.list.slice(0, 12).map((item: any) => ({
         time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         temp: item.main.temp.toFixed(1),
@@ -163,8 +156,6 @@
     getWeather('Tehran');
   });
 </script>
-
-<style>
   :global(body) {
     margin: 0;
     font-family: 'Arial', sans-serif;
@@ -369,6 +360,8 @@
     --scrollbar-thumb: #ff6f61;
     --scrollbar-track: #1e1e2f;
   }
+<style>
+  
 </style>
 
 <div class="container" class:light-mode={!isNight} class:dark-mode={isNight}>
