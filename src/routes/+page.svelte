@@ -362,7 +362,7 @@
     <div class="modal-overlay" on:click={closeModal}>
       <div class="modal-content" transition:fly={{ y: -50, duration: 300 }} on:click|stopPropagation>
         <button on:click={closeModal}>×</button>
-        <div class="message" transition:fade>{{temperatureMessage}}</div>
+        <div class="message" transition:fade>{temperatureMessage}</div>
       </div>
     </div>
   {/if}
