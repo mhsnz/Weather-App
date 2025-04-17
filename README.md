@@ -6,7 +6,7 @@ This project is a responsive weather web application built using Svelte and Type
 
 
 
-City Search: Users can search for weather information by entering a city name.
+- **City Search**: Users can search for weather information by entering a city name.
 
 
 
