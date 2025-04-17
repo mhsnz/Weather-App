@@ -1,38 +1,31 @@
-# sv
+This project is a responsive weather web application built using Svelte and TypeScript. It allows users to check real-time weather information and forecasts for any city or their current location. The app fetches data from the OpenWeatherMap API and provides an intuitive interface with features such as:
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
-## Creating a project
 
-If you're seeing this, you've probably already done this step. Congrats!
 
-```bash
-# create a new project in the current directory
-npx sv create
 
-# create a new project in my-app
-npx sv create my-app
-```
+City Search: Users can search for weather information by entering a city name.
 
-## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-```bash
-npm run dev
+Geolocation: Automatically fetch weather data based on the user's current location.
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
 
-## Building
 
-To create a production version of your app:
+Hourly and Daily Forecasts: Displays hourly weather for the next 12 hours and daily forecasts for the upcoming week.
 
-```bash
-npm run build
-```
 
-You can preview the production build with `npm run preview`.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+Dynamic Theme: Switches between light and dark modes based on the time of day (day/night) using sunrise and sunset data.
+
+
+
+Interactive Modal: Shows a custom message based on the temperature when clicking on a daily forecast card.
+
+
+
+Animations: Smooth transitions and animations using Svelte's fade and fly effects for a better user experience.
+
+
+
+Responsive Design: Optimized for both desktop and mobile devices with a clean and modern UI.
