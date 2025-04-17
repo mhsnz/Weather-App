@@ -31,3 +31,26 @@ This project is a responsive weather web application built using Svelte and Type
 
 
 - **Responsive Design**: Optimized for both desktop and mobile devices with a clean and modern UI.
+## Technologies Used
+
+
+
+
+
+- **Svelte**: For building the reactive UI.
+
+
+
+- **TypeScript**: For type-safe JavaScript development.
+
+
+
+- **OpenWeatherMap API**: For weather and forecast data.
+
+
+
+- **CSS**: Custom properties and responsive design.
+
+
+
+- **Geolocation API**: For fetching the user's location.
