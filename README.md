@@ -1,4 +1,4 @@
-#Weather Web App
+# Weather Web App
 
 This project is a responsive weather web application built using Svelte and TypeScript. It allows users to check real-time weather information and forecasts for any city or their current location. The app fetches data from the OpenWeatherMap API and provides an intuitive interface with features such as:
 
